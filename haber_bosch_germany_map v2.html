@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haber-Bosch Process: Ammonia Production in Germany</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f3f4f6;
+      color: #1f2937;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background: #1e3a5f;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      border-bottom: 3px solid #d97706;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .header-title h1 {
+      font-size: 1.05rem;
+      color: #fbbf24;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .header-title p {
+      font-size: 11px;
+      color: #93c5fd;
+      margin-top: 2px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      color: #93c5fd;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .filter-btn {
+      background: #2d5380;
+      border: 1px solid #3b6ea5;
+      color: #bfdbfe;
+      padding: 4px 13px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.18s ease;
+      font-family: inherit;
+    }
+
+    .filter-btn:hover { background: #3b6ea5; }
+    .filter-btn.f-all    { background: #92400e; border-color: #fbbf24; color: #fef3c7; }
+    .filter-btn.f-active { background: #064e3b; border-color: #34d399; color: #d1fae5; }
+    .filter-btn.f-hist   { background: #7f1d1d; border-color: #f87171; color: #fee2e2; }
+    .filter-btn.f-hidrail{ background: #374151; border-color: #6b7280; color: #d1d5db; }
+
+    #map { flex: 1; }
+
+    /* ── Popups ── */
+    .leaflet-popup-content-wrapper {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    }
+    .leaflet-popup-tip { background: #1e293b; }
+    .leaflet-popup-content { margin: 13px 15px; }
+
+    .popup-name { font-size: 14px; font-weight: 700; margin-bottom: 5px; line-height: 1.3; }
+    .popup-meta { display: flex; gap: 6px; align-items: center; margin-bottom: 9px; flex-wrap: wrap; }
+    .popup-years {
+      background: #334155; border: 1px solid #475569;
+      padding: 2px 8px; border-radius: 12px; font-size: 10px; color: #94a3b8;
+    }
+    .badge { padding: 2px 9px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .b-active  { background: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
+    .b-hist    { background: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; }
+    .b-partial { background: #78350f; color: #fcd34d; border: 1px solid #d97706; }
+
+    .popup-desc { font-size: 12px; line-height: 1.6; color: #cbd5e1; margin-bottom: 9px; }
+    .popup-facts { border-top: 1px solid #334155; padding-top: 7px; display: flex; flex-direction: column; gap: 3px; }
+    .popup-fact { font-size: 11px; color: #94a3b8; }
+    .popup-fact strong { color: #e2e8f0; }
+
+    .rail-pname { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+    .rail-pdesc { font-size: 12px; line-height: 1.55; color: #cbd5e1; }
+
+    /* ── Legend ── */
+    .legend-box {
+      background: rgba(30,41,59,0.96);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      min-width: 215px;
+      color: #cbd5e1;
+    }
+    .legend-box h3 {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #fbbf24; margin-bottom: 7px; font-weight: 700;
+    }
+    .leg-item { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
+    .leg-dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.5); }
+    .leg-line { width: 32px; height: 3px; flex-shrink: 0; border-radius: 2px; }
+    .leg-dash { width: 32px; height: 3px; flex-shrink: 0; background: repeating-linear-gradient(90deg,#16a34a 0,#16a34a 7px,transparent 7px,transparent 12px); }
+    .leg-sep { border: none; border-top: 1px solid #334155; margin: 8px 0; }
+    .legend-note { font-size: 10px; color: #64748b; margin-top: 8px; line-height: 1.5; }
+
+    /* ── Info box ── */
+    .info-box {
+      background: rgba(30,41,59,0.94);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 11.5px;
+      max-width: 230px;
+      color: #94a3b8;
+      line-height: 1.55;
+    }
+    .info-box strong { color: #fbbf24; display: block; margin-bottom: 5px; font-size: 12px; }
+
+    /* Layer control overrides */
+    .leaflet-control-layers {
+      background: rgba(30,41,59,0.96) !important;
+      border: 1px solid #334155 !important;
+      border-radius: 8px !important;
+      color: #cbd5e1 !important;
+    }
+    .leaflet-control-layers-toggle { background-color: #1e3a5f !important; }
+    .leaflet-control-layers label { color: #cbd5e1 !important; font-size: 12px !important; }
+    .leaflet-control-layers-separator { border-top-color: #334155 !important; }
+    .leaflet-control-layers-expanded { padding: 8px 12px !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <h1>⚗️ Haber-Bosch Process — Ammonia Production Sites in Germany</h1>
+    <p>Historical &amp; current industrial sites · Freight railway connections · 1913 to present</p>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Show:</span>
+    <button class="filter-btn f-all"  id="btn-all"    onclick="filterSites('all',this)">All Sites</button>
+    <button class="filter-btn"        id="btn-active" onclick="filterSites('active',this)">Active Only</button>
+    <button class="filter-btn"        id="btn-hist"   onclick="filterSites('hist',this)">Historical</button>
+    <button class="filter-btn"        id="btn-rail"   onclick="toggleRail(this)">Hide Railways</button>
+  </div>
+</header>
+
+<div id="map"></div>
+
+<script>
+// ── MAP INIT ──────────────────────────────────────────────────────────────
+const map = L.map('map', { center: [51.3, 10.4], zoom: 6 });
+
+// Base tile layers
+const esriStreet = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+  { attribution: 'Tiles &copy; Esri — Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community', maxZoom: 19 }
+);
+
+const osm = L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19 }
+);
+
+const topoMap = L.tileLayer(
+  'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+  { attribution: '© OpenTopoMap (CC-BY-SA)', maxZoom: 17 }
+
+);
+
+const cartoVoyager = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 19 }
+);
+
+// Default: ESRI Street (best for rivers + cities)
+esriStreet.addTo(map);
+
+// Layer switcher
+const baseMaps = {
+  '🗺 ESRI Street (rivers &amp; cities)': esriStreet,
+  '🗺 OpenStreetMap': osm,
+  '🏔 OpenTopoMap (terrain)': topoMap,
+  '🗺 CartoDB Voyager': cartoVoyager,
+};
+L.control.layers(baseMaps, {}, { position: 'topright', collapsed: true }).addTo(map);
+
+// ── SITE DATA ─────────────────────────────────────────────────────────────
+const sites = [
+  {
+    id: 'basf',
+    name: 'BASF Ludwigshafen / Oppau Works',
+    coords: [49.515, 8.417],
+    status: 'active',
+    years: '1913–present',
+    desc: 'The birthplace of industrial ammonia synthesis. Carl Bosch scaled up Fritz Haber\'s process for BASF in 1913, with the first plant at Oppau (north Ludwigshafen). An accidental explosion of ammonium sulphate-nitrate fertiliser at Oppau in 1921 killed 561 people — one of history\'s worst industrial disasters. BASF Ludwigshafen remains the world\'s largest integrated chemical complex and continues large-scale ammonia production today.',
+    sig: 'World\'s first industrial Haber-Bosch plant (1913)',
+    cap: '~500,000 t NH₃/year (BASF complex)',
+    op: 'BASF SE'
+  },
+  {
+    id: 'leuna',
+    name: 'Leuna Works',
+    coords: [51.330, 12.020],
+    status: 'active',
+    years: '1916–present',
+    desc: 'Established 1916 under wartime emergency to produce ammonia for WWI munitions (nitrogen for explosives). Became Germany\'s largest nitrogen factory. Heavily bombed by the Allies in WWII. Operated post-war as VEB Leuna-Werke "Walter Ulbricht" under the GDR. After 1990 reunification, restructured as InfraLeuna. Today hosts Linde (ammonia), TotalEnergies (refinery), and 100+ chemical tenants on one of Europe\'s largest industrial sites.',
+    sig: 'Largest WWI nitrogen site; GDR\'s chemical heartland',
+    cap: 'Linde plant: ~200,000 t NH₃/year',
+    op: 'InfraLeuna GmbH (multi-tenant); Linde plc'
+  },
+  {
+    id: 'piesteritz',
+    name: 'SKW Piesteritz',
+    coords: [51.878, 12.597],
+    status: 'active',
+    years: '1927–present',
+    desc: 'Founded 1927 near Lutherstadt Wittenberg on the Elbe. Operated continuously through WWII and as VEB Stickstoffwerk Piesteritz under the GDR. Privatised after reunification as SKW Stickstoffwerke Piesteritz GmbH. Now Germany\'s largest single-site nitrogen fertiliser producer, making ammonia, urea, AdBlue/DEF, ammonium nitrate solution and nitric acid for European agricultural markets.',
+    sig: 'Germany\'s largest nitrogen fertiliser producer today',
+    cap: '~450,000 t NH₃/year; ~570,000 t urea/year',
+    op: 'SKW Stickstoffwerke Piesteritz GmbH (private)'
+  },
+  {
+    id: 'brunsbüttel',
+    name: 'Yara Brunsbüttel Terminal',
+    coords: [53.897, 9.134],
+    status: 'active',
+    years: '~1975–present',
+    desc: 'Yara International\'s major ammonia import, storage and distribution terminal on the Elbe estuary near the Kiel Canal. Receives ammonia by ocean tanker from Trinidad, the Middle East and Norway. Distributes by rail, road and barge throughout northern Germany and Scandinavia. Strategic hub for European ammonia supply. Green ammonia infrastructure investments are underway as Germany transitions toward the hydrogen economy.',
+    sig: 'Key ammonia import gateway for northern Europe',
+    cap: 'Large-scale import storage; distribution hub',
+    op: 'Yara International ASA'
+  },
+  {
+    id: 'knapsack',
+    name: 'Chemische Werke Knapsack (Hürth)',
+    coords: [50.892, 6.793],
+    status: 'hist',
+    years: '1906–1990s',
+    desc: 'One of Germany\'s earliest industrial nitrogen sites, founded 1906 at Hürth near Cologne. Initially produced calcium cyanamide (an early nitrogen fertiliser via the Frank-Caro process), before adopting Haber-Bosch synthesis. Part of I.G. Farben (1925–1945), then Hoechst. Ammonia production wound down by the 1990s. Chempark Knapsack continues today under Evonik and Lanxess.',
+    sig: 'Pioneer German nitrogen site; pre-dates Haber-Bosch',
+    cap: 'Ammonia production ceased ~1990s',
+    op: 'Now Chempark Knapsack (Evonik, Lanxess, others)'
+  },
+  {
+    id: 'dormagen',
+    name: 'Chempark Dormagen (Bayer/I.G. Farben)',
+    coords: [51.083, 6.838],
+    status: 'hist',
+    years: '1917–1990s',
+    desc: 'Bayer AG\'s major Niederrhein chemical works at Dormagen, established 1917 to produce nitrogen compounds, dyes and pharmaceuticals. Absorbed into I.G. Farben in 1925. Post-WWII reverted to Bayer. Ammonia production consolidated elsewhere by the 1990s. Chempark Dormagen remains an active multi-tenant site (Lanxess, Bayer CropScience, Covestro).',
+    sig: 'Major WWI-era Bayer nitrogen and dye complex',
+    cap: 'Ammonia production ceased',
+    op: 'Now Chempark Dormagen (Lanxess, Bayer, Covestro)'
+  },
+  {
+    id: 'huels',
+    name: 'Chemiewerk Hüls / Chemiepark Marl',
+    coords: [51.660, 7.093],
+    status: 'hist',
+    years: '1938–1980s',
+    desc: 'Established 1938 in Marl (Ruhr area) as part of the I.G. Farben network producing synthetic rubber (Buna-S) and petrochemicals, requiring ammonia feedstock. Post-WWII became Chemische Werke Hüls AG. Ammonia production ceased as operations were restructured. Hüls merged into Degussa, then Evonik Industries. Chemiepark Marl is today Evonik\'s flagship site.',
+    sig: 'I.G. Farben synthetic rubber complex; Ruhr industrial heritage',
+    cap: 'Ammonia production ceased',
+    op: 'Now Evonik Industries (Chemiepark Marl)'
+  },
+  {
+    id: 'merseburg',
+    name: 'Ammoniakwerk Merseburg',
+    coords: [51.355, 11.994],
+    status: 'hist',
+    years: '1916–1920s',
+    desc: 'A dedicated ammonia production facility constructed 1916 on the Saale river adjacent to the Leuna complex, to feed the WWI nitrogen-for-munitions programme. The facility was rapidly integrated into the expanding Leuna Works after the war and ceased to exist as a separate entity by the early 1920s. Today within the greater InfraLeuna industrial zone.',
+    sig: 'Early WWI ammonia site; absorbed into Leuna Works',
+    cap: 'Merged into Leuna Works',
+    op: 'Merged into Leuna / InfraLeuna'
+  },
+  {
+    id: 'schwarzheide',
+    name: 'BASF Schwarzheide',
+    coords: [51.477, 13.859],
+    status: 'partial',
+    years: '1936–present',
+    desc: 'Founded 1936 as Hydrierwerk Schwarzheide (I.G. Farben) to produce synthetic fuels via coal hydrogenation. Operated as VEB Synthesewerk Schwarzheide under the GDR. BASF acquired the site after 1990. Now produces polyurethanes and specialty chemicals. Ammonia is consumed as a process chemical but not produced at scale on-site.',
+    sig: 'I.G. Farben / GDR coal-chemicals heritage; BASF East Germany hub',
+    cap: 'Ammonia consumer (not producer)',
+    op: 'BASF SE'
+  },
+  {
+    id: 'buna',
+    name: 'Buna Werke / Dow Schkopau',
+    coords: [51.398, 11.994],
+    status: 'partial',
+    years: '1936–present',
+    desc: 'I.G. Farben\'s Buna Works at Schkopau, established 1936 as Germany\'s largest synthetic rubber plant. Large quantities of ammonia-derived nitrogen compounds were used in polymerisation. Operated as VEB Buna under GDR. Dow Chemical acquired it after 1990 (now Dow Olefinverbund). Ammonia is purchased rather than produced on-site.',
+    sig: 'I.G. Farben\'s flagship WWII synthetic rubber complex',
+    cap: 'Ammonia consumer; Dow ethylene and polymers',
+    op: 'Dow Inc.'
+  },
+  {
+    id: 'lülsdorf',
+    name: 'Rhenania-Ossag Nitrogen Works, Lülsdorf',
+    coords: [50.791, 7.016],
+    status: 'hist',
+    years: '1917–1970s',
+    desc: 'A nitrogen and explosives works established near Lülsdorf (south of Cologne on the Rhine) during WWI to supplement Germany\'s ammonia and nitric acid supplies for munitions. Operated under various owners including Rhenania after WWI. Production gradually wound down through the mid-20th century as operations consolidated at larger sites.',
+    sig: 'WWI Rhine-area nitrogen/explosives works',
+    cap: 'Production ceased',
+    op: 'Decommissioned'
+  }
+];
+
+// ── FREIGHT RAILWAY DATA ──────────────────────────────────────────────────
+const railways = [
+  {
+    name: 'Rhine Freight Corridor (Basel–Mannheim–Cologne–Duisburg)',
+    desc: 'Germany\'s most heavily used freight artery, following the Rhine from the Swiss border through Karlsruhe, Mannheim (adjacent to BASF Ludwigshafen), Mainz, Koblenz and Cologne to the Rhine-Ruhr conurbation. Critical for BASF\'s ammonia and chemical exports north to Rotterdam and south to Basel.',
+    color: '#c2410c', weight: 4, dash: null,
+    coords: [[47.559,7.588],[47.999,7.843],[48.994,8.403],[49.487,8.466],[49.632,8.349],[49.998,8.271],[50.356,7.588],[50.735,7.099],[50.938,6.960],[51.220,6.778],[51.435,6.762]]
+  },
+  {
+    name: 'Ruhr–Hannover–Hamburg Main Freight Line',
+    desc: 'Primary north–south freight artery from the Ruhr industrial heartland via Hannover to Hamburg port. Carries ammonia tank cars, fertiliser granules, chemical intermediates and downstream products to/from North Sea export terminals.',
+    color: '#c2410c', weight: 4, dash: null,
+    coords: [[51.435,6.762],[51.514,7.466],[51.680,7.815],[52.100,8.800],[52.376,9.740],[52.866,9.730],[53.100,9.850],[53.553,9.992]]
+  },
+  {
+    name: 'Hannover–Magdeburg–Berlin East–West Corridor',
+    desc: 'Major east–west freight axis through northern Germany. Connects Rhine-Ruhr to Berlin and Poland. Allows Leuna and Piesteritz products to route west to the Ruhr and Rhine via Magdeburg and Hannover.',
+    color: '#c2410c', weight: 4, dash: null,
+    coords: [[52.376,9.740],[52.120,11.627],[52.290,12.520],[52.520,13.405]]
+  },
+  {
+    name: 'Central Germany — Leuna & Merseburg Spur (Saale valley)',
+    desc: 'Local freight connections within the central German chemical triangle, linking Halle(Saale) marshalling yards to the Leuna Works and Merseburg chemical zone on the Saale river. Ammonia, liquid nitrogen, urea and nitric acid shipments join the broader network at Halle.',
+    color: '#16a34a', weight: 4, dash: '9,6',
+    coords: [[51.483,11.970],[51.430,11.985],[51.354,11.994],[51.330,12.020]]
+  },
+  {
+    name: 'Halle–Lutherstadt Wittenberg–Berlin (Piesteritz / Elbe Line)',
+    desc: 'Freight route directly serving SKW Piesteritz on the Elbe. Nitrogen fertilisers (urea, ammonium nitrate solution) and ammonia are loaded at Piesteritz and travel via Lutherstadt Wittenberg through the Fläming to Berlin, or west via Dessau and Halle to western markets.',
+    color: '#16a34a', weight: 4, dash: '9,6',
+    coords: [[51.483,11.970],[51.560,12.200],[51.667,12.490],[51.878,12.597],[52.120,12.900],[52.390,13.100],[52.520,13.405]]
+  },
+  {
+    name: 'Halle–Magdeburg–Hamburg (Central Germany to Port)',
+    desc: 'Key export corridor for central German ammonia and fertiliser production. Leuna and Piesteritz products route through Halle and Magdeburg northward to Hamburg port for onward shipping, or to Brunsbüttel via Hamburg.',
+    color: '#16a34a', weight: 4, dash: '9,6',
+    coords: [[51.483,11.970],[51.900,11.590],[52.120,11.627],[52.600,11.857],[53.100,10.700],[53.553,9.992]]
+  },
+  {
+    name: 'Frankfurt–Kassel–Hannover (Mid-Germany Connector)',
+    desc: 'Central north–south freight corridor linking Rhine-Main to Hannover hub. Allows chemical products from the Frankfurt/Darmstadt area to interchange with Hamburg- and Ruhr-bound traffic at Hannover.',
+    color: '#1d4ed8', weight: 3.5, dash: null,
+    coords: [[50.107,8.663],[50.560,9.200],[51.312,9.452],[51.700,9.600],[52.376,9.740]]
+  },
+  {
+    name: 'Leipzig–Erfurt–Frankfurt Freight Axis',
+    desc: 'Connects the central German chemical complex (Leipzig/Halle) south-westward through Erfurt to Frankfurt and Rhine-Main. Routes Leuna and Piesteritz products towards southern German agricultural markets and Rhine export routes.',
+    color: '#1d4ed8', weight: 3.5, dash: null,
+    coords: [[51.340,12.374],[51.050,11.700],[50.978,11.029],[50.680,10.600],[50.107,8.663]]
+  },
+  {
+    name: 'Rhine-Ruhr Chemical Belt (Duisburg–Dormagen–Cologne–Knapsack)',
+    desc: 'Dense freight network connecting Rhine-Ruhr chemical sites: BASF traffic from Mannheim routing to Chempark Dormagen, Cologne freight yard, and Chempark Knapsack/Hürth. Heavily used for chemical raw materials, intermediates and fertilisers.',
+    color: '#c2410c', weight: 3.5, dash: null,
+    coords: [[51.435,6.762],[51.220,6.778],[51.083,6.838],[50.938,6.960],[50.892,6.793]]
+  },
+  {
+    name: 'Brunsbüttel–Itzehoe–Hamburg (Port Freight Connection)',
+    desc: 'Rail freight link from the Brunsbüttel port and industrial zone (Yara terminal) to Hamburg main freight hub via Itzehoe. Carries imported ammonia from Brunsbüttel for distribution across Germany. Supplements Elbe barge traffic.',
+    color: '#7c3aed', weight: 3.5, dash: null,
+    coords: [[53.897,9.134],[53.923,9.517],[53.553,9.992]]
+  },
+  {
+    name: 'Marl–Dortmund–Duisburg (Ruhr Chemical Cluster)',
+    desc: 'Freight connections from Chemiepark Marl (Evonik, formerly Hüls) to the Ruhr freight network. Historically carried ammonia and nitrogen compounds from the Hüls works; today handles ethylene, propylene and specialty chemicals.',
+    color: '#c2410c', weight: 3.5, dash: null,
+    coords: [[51.660,7.093],[51.514,7.466],[51.435,6.762]]
+  },
+  {
+    name: 'Berlin–Schwarzheide–Dresden (Lausitz Chemical Route)',
+    desc: 'Freight link from Berlin southward through the Lausitz region to BASF Schwarzheide and Dresden. Served I.G. Farben / GDR coal-chemical sites; today carries BASF polyurethane and specialty chemical products.',
+    color: '#1d4ed8', weight: 3.5, dash: null,
+    coords: [[52.520,13.405],[51.900,13.500],[51.477,13.859],[51.050,13.740]]
+  },
+];
+
+// ── ICON FACTORY ──────────────────────────────────────────────────────────
+function makeIcon(status) {
+  const cfg = {
+    active:  { fill: '#16a34a', ring: '#bbf7d0', size: 18 },
+    hist:    { fill: '#dc2626', ring: '#fecaca', size: 15 },
+    partial: { fill: '#d97706', ring: '#fef08a', size: 15 },
+  }[status] || { fill: '#6b7280', ring: '#d1d5db', size: 14 };
+
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:${cfg.size}px; height:${cfg.size}px;
+      background:${cfg.fill};
+      border:2.5px solid ${cfg.ring};
+      border-radius:50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.2);
+    "></div>`,
+    iconSize: [cfg.size, cfg.size],
+    iconAnchor: [cfg.size/2, cfg.size/2],
+  });
+}
+
+// ── POPUP BUILDER ─────────────────────────────────────────────────────────
+function sitePopup(s) {
+  const nameCol = { active:'#4ade80', hist:'#f87171', partial:'#fbbf24' }[s.status];
+  const badgeCls = { active:'b-active', hist:'b-hist', partial:'b-partial' }[s.status];
+  const badgeTxt = { active:'Active', hist:'Historical', partial:'Repurposed' }[s.status];
+  return `<div style="min-width:240px;max-width:290px">
+    <div class="popup-name" style="color:${nameCol}">${s.name}</div>
+    <div class="popup-meta">
+      <span class="popup-years">⏱ ${s.years}</span>
+      <span class="badge ${badgeCls}">${badgeTxt}</span>
+    </div>
+    <div class="popup-desc">${s.desc}</div>
+    <div class="popup-facts">
+      <div class="popup-fact">🔬 <strong>Significance:</strong> ${s.sig}</div>
+      <div class="popup-fact">🏭 <strong>Capacity:</strong> ${s.cap}</div>
+      <div class="popup-fact">🏢 <strong>Operator:</strong> ${s.op}</div>
+    </div>
+  </div>`;
+}
+
+// ── DRAW RAILWAYS ─────────────────────────────────────────────────────────
+const railPolylines = railways.map(r => {
+  const pl = L.polyline(r.coords, {
+    color: r.color,
+    weight: r.weight,
+    opacity: 0.82,
+    dashArray: r.dash,
+    lineJoin: 'round',
+    lineCap: 'round',
+  }).addTo(map);
+  pl.bindPopup(`<div style="min-width:200px;max-width:270px">
+    <div class="rail-pname" style="color:${r.color}">${r.name}</div>
+    <div class="rail-pdesc">${r.desc}</div>
+  </div>`);
+  return pl;
+});
+
+// ── DRAW SITE MARKERS ─────────────────────────────────────────────────────
+const siteMarkers = sites.map(s => {
+  const m = L.marker(s.coords, { icon: makeIcon(s.status) }).addTo(map);
+  m.bindPopup(sitePopup(s), { maxWidth: 310 });
+  m._status = s.status;
+  return m;
+});
+
+// ── FILTER ────────────────────────────────────────────────────────────────
+let railVisible = true;
+
+function filterSites(mode, btn) {
+  ['btn-all','btn-active','btn-hist'].forEach(id => {
+    const b = document.getElementById(id);
+    b.className = 'filter-btn';
+  });
+  if (mode==='all')    btn.className='filter-btn f-all';
+  if (mode==='active') btn.className='filter-btn f-active';
+  if (mode==='hist')   btn.className='filter-btn f-hist';
+
+  siteMarkers.forEach(m => {
+    const show = mode==='all' ||
+      (mode==='active' && m._status==='active') ||
+      (mode==='hist'   && (m._status==='hist' || m._status==='partial'));
+    show ? map.addLayer(m) : map.removeLayer(m);
+  });
+}
+
+function toggleRail(btn) {
+  railVisible = !railVisible;
+  railPolylines.forEach(pl => railVisible ? map.addLayer(pl) : map.removeLayer(pl));
+  btn.textContent = railVisible ? 'Hide Railways' : 'Show Railways';
+  btn.className = railVisible ? 'filter-btn' : 'filter-btn f-hidrail';
+}
+
+// ── LEGEND ────────────────────────────────────────────────────────────────
+const legend = L.control({ position: 'bottomright' });
+legend.onAdd = function() {
+  const div = L.DomUtil.create('div','legend-box');
+  div.innerHTML = `
+    <h3>⚗️ Ammonia Production Sites</h3>
+    <div class="leg-item"><span class="leg-dot" style="background:#16a34a;border-color:#bbf7d0"></span>Active (currently producing NH₃)</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#d97706;border-color:#fef08a"></span>Repurposed / NH₃ consumer</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#dc2626;border-color:#fecaca"></span>Historical (production ceased)</div>
+    <hr class="leg-sep"/>
+    <h3>🚂 Freight Railway Lines</h3>
+    <div class="leg-item"><span class="leg-line" style="background:#c2410c"></span>Rhine, Ruhr &amp; North Sea corridors</div>
+    <div class="leg-item"><span class="leg-dash"></span>Central German chemical cluster</div>
+    <div class="leg-item"><span class="leg-line" style="background:#1d4ed8"></span>East–West &amp; South connectors</div>
+    <div class="leg-item"><span class="leg-line" style="background:#7c3aed"></span>Port connection (Brunsbüttel)</div>
+    <div class="legend-note">Click any marker or line for details.<br>Use the layer icon (top-right) to change map style.<br>Fritz Haber (Nobel 1918) · Carl Bosch (Nobel 1931)</div>
+  `;
+  return div;
+};
+legend.addTo(map);
+
+// ── INFO PANEL ────────────────────────────────────────────────────────────
+const infoPanel = L.control({ position: 'topleft' });
+infoPanel.onAdd = function() {
+  const div = L.DomUtil.create('div','info-box');
+  div.innerHTML = `<strong>About the Haber-Bosch Process</strong>
+    Fritz Haber synthesised ammonia from N₂ and H₂ under high pressure in 1909.
+    Carl Bosch industrialised it for BASF at Oppau in 1913 — first to feed Germany's WWI munitions industry, then the world's farms.
+    The process now produces ~185 million tonnes of NH₃/year, underpinning fertilisers that feed roughly half the world's population.`;
+  return div;
+};
+infoPanel.addTo(map);
+</script>
+</body>
+</html>

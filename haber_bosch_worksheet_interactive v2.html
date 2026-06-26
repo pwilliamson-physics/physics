@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haber-Bosch Process — Interactive Worksheet</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, 'Segoe UI', sans-serif;
+  background: #eef2f7;
+  color: #1a1a1a;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.page { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+/* ── STICKY HEADER ─── */
+#sticky-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: #1B4B8A; color: #fff;
+  padding: 8px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+#sticky-bar .title { font-weight: 700; font-size: .95em; }
+#prog-wrap { display: flex; align-items: center; gap: 10px; }
+#prog-bar-bg { width: 180px; height: 10px; background: rgba(255,255,255,.3); border-radius: 5px; overflow: hidden; }
+#prog-bar { height: 100%; background: #4fcda0; border-radius: 5px; transition: width .4s; width: 0%; }
+#prog-label { font-size: .82em; opacity: .9; white-space: nowrap; }
+#btn-print { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4); color: #fff; padding: 4px 12px; border-radius: 5px; cursor: pointer; font-size: .82em; }
+#btn-print:hover { background: rgba(255,255,255,.28); }
+
+/* ── TITLE ─── */
+.doc-title { background: #fff; border-radius: 10px; padding: 24px 28px 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.1); border-top: 5px solid #1B4B8A; }
+.doc-title h1 { font-size: 1.65em; color: #1B4B8A; margin-bottom: 3px; }
+.doc-title .subtitle { color: #555; font-style: italic; margin-bottom: 18px; font-size: .95em; }
+.equation-banner { background: #EEF5FE; border-left: 4px solid #1B4B8A; padding: 10px 16px; border-radius: 4px; font-weight: 700; font-size: 1.05em; color: #0D3D6E; margin-bottom: 18px; }
+.student-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.student-field label { font-size: .8em; font-weight: 700; color: #555; display: block; margin-bottom: 3px; }
+.student-field input { width: 100%; border: 1px solid #ccc; border-radius: 5px; padding: 6px 10px; font-size: .95em; background: #fafafa; }
+.student-field input:focus { outline: none; border-color: #1B4B8A; background: #fff; }
+
+/* ── INFO BOXES ─── */
+.info-box { background: #fff; border-radius: 10px; padding: 18px 22px; margin-bottom: 16px; border-left: 5px solid #1B4B8A; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.info-box.teal  { border-color: #0D6E6E; }
+.info-box.amber { border-color: #B8600A; }
+.info-box h3 { font-size: 1em; margin-bottom: 8px; color: #1B4B8A; }
+.info-box.teal h3  { color: #0D5858; }
+.info-box.amber h3 { color: #8A4000; }
+.info-box ul { padding-left: 20px; }
+.info-box li { margin-bottom: 4px; }
+
+/* ── SECTIONS ─── */
+.section { margin-bottom: 20px; }
+.sec-header { display: flex; align-items: center; border-radius: 8px 8px 0 0; overflow: hidden; }
+.sec-letter { font-size: 1.5em; font-weight: 900; color: #fff; padding: 12px 18px; min-width: 54px; text-align: center; }
+.sec-title  { font-size: 1.1em; font-weight: 700; color: #fff; padding: 12px 18px; flex: 1; }
+.sec-body   { background: #fff; border-radius: 0 0 8px 8px; padding: 20px 22px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+
+.blue-sec .sec-letter, .blue-sec .sec-title { background: #1B4B8A; }
+.blue-sec .sec-header { border: 2px solid #1B4B8A; }
+.blue-sec .sec-body   { border: 2px solid #1B4B8A; border-top: none; }
+.teal-sec .sec-letter, .teal-sec .sec-title { background: #0D6E6E; }
+.teal-sec .sec-header { border: 2px solid #0D6E6E; }
+.teal-sec .sec-body   { border: 2px solid #0D6E6E; border-top: none; }
+.amber-sec .sec-letter, .amber-sec .sec-title { background: #B8600A; }
+.amber-sec .sec-header { border: 2px solid #B8600A; }
+.amber-sec .sec-body   { border: 2px solid #B8600A; border-top: none; }
+
+/* ── DATA TABLES ─── */
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table.data-tbl { width: 100%; border-collapse: collapse; font-size: .88em; }
+table.data-tbl th { background: #1B4B8A; color: #fff; padding: 7px 10px; text-align: center; font-size: .85em; white-space: nowrap; }
+.teal-sec  table.data-tbl th { background: #0D6E6E; }
+.amber-sec table.data-tbl th { background: #B8600A; }
+table.data-tbl tr:nth-child(even) td { background: #F5F8FC; }
+table.data-tbl td { border: 1px solid #cdd8e5; padding: 5px 6px; text-align: center; vertical-align: middle; }
+table.data-tbl td.fixed { font-weight: 700; color: #1B4B8A; background: #EEF3FB !important; }
+.teal-sec  table.data-tbl td.fixed { color: #0D6E6E; background: #EEF8F8 !important; }
+.amber-sec table.data-tbl td.fixed { color: #8A4000; background: #FDF3EA !important; }
+td.auto-cell { font-weight: 600; color: #0D6E6E; background: #EEF8F8 !important; font-size: .9em; }
+
+input.num-in { width: 72px; border: 1px solid #b0bec5; border-radius: 4px; padding: 4px 6px; text-align: center; font-size: .9em; font-family: inherit; }
+input.num-in:focus { outline: none; border-color: #1B4B8A; background: #f0f5ff; }
+input.num-in.filled { border-color: #4fcda0; background: #f0fff8; }
+input.text-in { width: 100%; min-width: 120px; border: 1px solid #b0bec5; border-radius: 4px; padding: 4px 8px; font-size: .88em; font-family: inherit; }
+input.text-in:focus { outline: none; border-color: #1B4B8A; }
+input.text-in.filled { border-color: #4fcda0; }
+
+/* ── QUESTIONS ─── */
+.q-block { margin: 18px 0 0; }
+.q-label { display: inline-block; background: #1B4B8A; color: #fff; border-radius: 4px; padding: 2px 9px; font-weight: 700; font-size: .82em; margin-bottom: 6px; }
+.teal-sec  .q-label { background: #0D6E6E; }
+.amber-sec .q-label { background: #B8600A; }
+.q-text { font-weight: 600; margin-bottom: 8px; color: #111; }
+
+/* ── HINT SYSTEM ─── */
+.hint-toggle { display: inline-flex; align-items: center; gap: 6px; background: #FFF8E1; border: 1px solid #FFD54F; color: #6D4C00; border-radius: 20px; padding: 4px 14px; font-size: .82em; font-weight: 600; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
+.hint-toggle:hover { background: #FFE082; }
+.hint-toggle .arrow { transition: transform .25s; display: inline-block; }
+.hint-toggle.open .arrow { transform: rotate(90deg); }
+.hint-panel { display: none; background: #FFFDE7; border: 1px solid #FFE082; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; font-size: .88em; }
+.hint-panel .hint-tier { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #FFD54F; }
+.hint-panel .hint-tier:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.hint-panel .tier-head { font-weight: 700; color: #6D4C00; margin-bottom: 4px; }
+.hint-panel p, .hint-panel li { color: #4A3500; margin-bottom: 4px; }
+.hint-panel ul { padding-left: 18px; }
+.hint-panel .starter { font-style: italic; color: #1B4B8A; background: #E3F0FF; border-radius: 5px; padding: 6px 10px; margin-top: 6px; }
+
+/* ── ANSWER BOXES ─── */
+textarea.ans { width: 100%; border: 1.5px solid #b0bec5; border-radius: 6px; padding: 10px 12px; font-family: Arial, sans-serif; font-size: .92em; resize: vertical; min-height: 90px; background: #FAFCFF; line-height: 1.6; }
+textarea.ans:focus { outline: none; border-color: #1B4B8A; background: #fff; }
+textarea.ans.filled { border-color: #4fcda0; }
+
+/* ── CHECK SYSTEM ─── */
+.check-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+.check-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #1B4B8A; color: #fff; border: none;
+  border-radius: 20px; padding: 5px 16px;
+  font-size: .82em; font-weight: 600; cursor: pointer;
+}
+.check-btn:hover { background: #0d3070; }
+.teal-sec  .check-btn { background: #0D6E6E; }
+.teal-sec  .check-btn:hover { background: #095252; }
+.amber-sec .check-btn { background: #B8600A; }
+.amber-sec .check-btn:hover { background: #8a4500; }
+
+.tbl-check-btn { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #1B4B8A; border: 1.5px solid #1B4B8A; border-radius: 20px; padding: 4px 14px; font-size: .82em; font-weight: 600; cursor: pointer; margin-top: 6px; }
+.tbl-check-btn:hover { background: #EEF3FB; }
+.teal-sec  .tbl-check-btn { color: #0D6E6E; border-color: #0D6E6E; }
+.teal-sec  .tbl-check-btn:hover { background: #EEF8F8; }
+
+.check-panel {
+  display: none;
+  background: #fff;
+  border: 1.5px solid #dde4ed;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 8px;
+  font-size: .88em;
+}
+.score-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: 7px;
+  margin-bottom: 12px; font-weight: 700; font-size: .95em;
+}
+.score-banner.good   { background: #e6f8f0; border: 1.5px solid #4fcda0; color: #0a5a30; }
+.score-banner.ok     { background: #fff8e1; border: 1.5px solid #FFD54F; color: #6D4C00; }
+.score-banner.needs  { background: #fef0f0; border: 1.5px solid #ffaaaa; color: #8a0000; }
+
+.concept-list { margin-bottom: 12px; }
+.concept-item { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; border-bottom: 1px dotted #eee; }
+.concept-item:last-child { border-bottom: none; }
+.ci-icon { min-width: 20px; font-size: 1em; }
+.ci-text { color: #333; }
+.concept-item.found .ci-text { color: #0a5a30; }
+.concept-item.missing .ci-text { color: #7a2200; }
+
+.model-reveal { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cdd8e5; }
+.model-reveal summary { cursor: pointer; font-weight: 700; color: #1B4B8A; font-size: .9em; user-select: none; padding: 4px 0; }
+.teal-sec  .model-reveal summary { color: #0D6E6E; }
+.amber-sec .model-reveal summary { color: #8A4000; }
+.model-text { margin-top: 10px; padding: 12px 14px; background: #f0f5ff; border-radius: 6px; font-size: .9em; line-height: 1.7; color: #1a1a2e; border-left: 3px solid #1B4B8A; }
+.teal-sec  .model-text { background: #f0faf8; border-color: #0D6E6E; }
+.amber-sec .model-text { background: #fff8f0; border-color: #B8600A; }
+
+/* Table checker result */
+.tbl-check-result { margin-top: 8px; }
+.tbl-check-result table { width: 100%; border-collapse: collapse; font-size: .83em; }
+.tbl-check-result th { background: #f0f4f8; padding: 5px 8px; border: 1px solid #cdd8e5; font-size: .82em; }
+.tbl-check-result td { padding: 4px 8px; border: 1px solid #dde4ed; text-align: center; }
+.tbl-check-result td.t-fixed { font-weight: 700; color: #1B4B8A; background: #EEF3FB; }
+.tbl-check-result td.t-exp   { color: #555; }
+.tbl-check-result td.t-good  { color: #0a5a30; font-weight: 600; }
+.tbl-check-result td.t-bad   { color: #8a0000; font-weight: 600; }
+.tbl-check-result td.t-blank { color: #aaa; font-style: italic; }
+.tbl-check-result .tbl-note { font-size: .8em; color: #666; margin-top: 6px; font-style: italic; }
+
+/* ── CANVAS ─── */
+.canvas-wrap { background: #fff; border: 1.5px solid #cdd8e5; border-radius: 8px; padding: 10px; margin: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#sketch { border: 1px solid #ddd; cursor: crosshair; display: block; touch-action: none; }
+.canvas-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: .83em; }
+.canvas-tools label { font-weight: 600; color: #555; }
+.ctool { padding: 4px 12px; border-radius: 15px; border: 1.5px solid #ccc; cursor: pointer; font-size: .82em; background: #f5f5f5; }
+.ctool.active, .ctool:hover { background: #1B4B8A; color: #fff; border-color: #1B4B8A; }
+.color-swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #999; cursor: pointer; display: inline-block; }
+.color-swatch.active { border-color: #000; border-width: 3px; }
+#clr-btn { padding: 4px 12px; background: #fee; border: 1px solid #faa; border-radius: 15px; color: #a00; cursor: pointer; font-size: .82em; }
+#clr-btn:hover { background: #fcc; }
+
+/* ── OPT GRID ─── */
+#opt-grid td.opt-cell input { width: 62px; border: 1px solid #d4a870; border-radius: 4px; padding: 4px; text-align: center; font-size: .88em; background: #fffdf8; }
+#opt-grid td.opt-cell input:focus { outline: none; border-color: #B8600A; background: #fff8ee; }
+#opt-grid td.opt-cell input.best { border-color: #B8600A; background: #FFF3E0; font-weight: 700; color: #8A3000; }
+
+/* ── KEYWORD BANK ─── */
+.keyword-bank { background: #fff; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-top: 20px; border-top: 4px solid #1B4B8A; }
+.keyword-bank h3 { color: #1B4B8A; margin-bottom: 10px; font-size: .95em; }
+.keywords { display: flex; flex-wrap: wrap; gap: 8px; }
+.kw { background: #EEF3FB; border: 1px solid #B0C4DE; color: #1B4B8A; border-radius: 15px; padding: 3px 12px; font-size: .82em; font-weight: 600; }
+
+/* ── MISC ─── */
+.summary-tbl td:first-child { font-weight: 600; background: #F5F8FC !important; width: 45%; }
+.instr { color: #444; font-size: .9em; margin-bottom: 12px; }
+.instr strong { color: #1B4B8A; }
+.divider { height: 1px; background: #dde4ed; margin: 18px 0; }
+#save-status { text-align: center; font-size: .8em; color: #888; margin-top: 6px; }
+
+/* ── PRINT ─── */
+@media print {
+  body { background: #fff; font-size: 10pt; }
+  .page { padding: 0; max-width: 100%; }
+  #sticky-bar, .canvas-tools, .check-row, .hint-toggle, .tbl-check-btn { display: none !important; }
+  .hint-panel { display: block !important; background: #fffde7; border: 1px dashed #ccc; }
+  .check-panel { display: none !important; }
+  textarea.ans { border: 1px solid #999; min-height: 70px; }
+  .section { page-break-inside: avoid; }
+  .q-block { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div id="sticky-bar">
+  <div class="title">⚗️ Haber-Bosch Process — Interactive Worksheet</div>
+  <div id="prog-wrap">
+    <div id="prog-bar-bg"><div id="prog-bar"></div></div>
+    <span id="prog-label">0 / 15 answered</span>
+    <button id="btn-print" onclick="window.print()">🖨 Print</button>
+  </div>
+</div>
+
+<div class="page">
+
+<div class="doc-title">
+  <h1>The Haber-Bosch Process</h1>
+  <p class="subtitle">Finding the Optimum: A Simulation-Based Investigation</p>
+  <div class="equation-banner">N₂ (g) + 3H₂ (g) ⇌ 2NH₃ (g) &emsp;|&emsp; ΔH° = −92 kJ mol⁻¹ &emsp;|&emsp; Iron (Fe) catalyst</div>
+  <div class="student-grid">
+    <div class="student-field"><label>Name</label><input type="text" data-save="info-name" placeholder="Your name"></div>
+    <div class="student-field"><label>Class / Set</label><input type="text" data-save="info-class" placeholder="e.g. 12A Chemistry"></div>
+    <div class="student-field"><label>Date</label><input type="date" data-save="info-date"></div>
+  </div>
+</div>
+
+<div class="info-box">
+  <h3>Background</h3>
+  <p>Ammonia (NH₃) is the basis of all nitrogen fertilisers, which feed roughly half the global population. Because the reaction is <strong>exothermic</strong> and produces <strong>fewer moles of gas</strong>, the choice of temperature and pressure in the Converter strongly affects both the equilibrium yield and the rate of reaction. Use the interactive simulator (<code>haber_bosch_simulator.html</code>) alongside this worksheet to collect data and discover the optimum conditions.</p>
+</div>
+
+<div class="info-box teal">
+  <h3>How to use the simulator</h3>
+  <ul>
+    <li>Open <code>haber_bosch_simulator.html</code> in a web browser alongside this page.</li>
+    <li><strong>Temperature slider</strong>: 300–600 °C &emsp; <strong>Pressure slider</strong>: 50–400 atm</li>
+    <li>Record values from the three metric bars: <strong>Equilibrium Conversion (%)</strong>, <strong>Rate Index (%)</strong>, <strong>Effective Output (%)</strong>. Round to one decimal place.</li>
+    <li>Click <strong>✓ Check my answer</strong> after each question for instant feedback. Answers are auto-saved in your browser.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════ PART A ═══════════════════ -->
+<div class="section blue-sec">
+  <div class="sec-header"><div class="sec-letter">A</div><div class="sec-title">Effect of Temperature on the Converter</div></div>
+  <div class="sec-body">
+    <p class="instr"><strong>Fix the pressure at 200 atm.</strong> Move the Temperature slider to each value and record the three metrics. Note a brief observation in the last column.</p>
+    <div class="tbl-wrap">
+      <table class="data-tbl"><thead><tr>
+        <th>Temperature (°C)</th><th>Equilibrium Conv. (%)</th><th>Rate Index (%)</th><th>Effective Output (%)</th><th style="min-width:155px">Key observation</th>
+      </tr></thead><tbody id="tbody-temp"></tbody></table>
+    </div>
+    <button class="tbl-check-btn" onclick="checkTable('temp')">📊 Check my table values</button>
+    <div class="check-panel tbl-check-result" id="check-panel-temp"></div>
+
+    <!-- Q1 -->
+    <div class="q-block">
+      <div class="q-label">Q1</div>
+      <p class="q-text">Using Le Chatelier's Principle, explain why increasing temperature <em>decreases</em> the equilibrium conversion.</p>
+      <button class="hint-toggle" onclick="toggleHint('h1')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h1">
+        <div class="hint-tier"><div class="tier-head">💡 What to think about</div><p>The forward reaction releases heat. Think of heat as a "product". What does Le Chatelier say when you add more of a product?</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Key principle</div><p>Le Chatelier: the system shifts to <em>oppose</em> the change. Adding heat → equilibrium shifts <strong>left</strong> → less NH₃ formed → lower conversion.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"Because the forward reaction is exothermic, increasing temperature causes the equilibrium to shift to the left because..."</div></div>
+      </div>
+      <textarea class="ans" id="q1" data-save="q1" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row">
+        <button class="check-btn" onclick="checkAnswer(1)">✓ Check my answer</button>
+      </div>
+      <div class="check-panel" id="check-panel-1"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q2 -->
+    <div class="q-block">
+      <div class="q-label">Q2</div>
+      <p class="q-text">Describe what happens to the Rate Index as temperature increases and explain why, using collision theory.</p>
+      <button class="hint-toggle" onclick="toggleHint('h2')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h2">
+        <div class="hint-tier"><div class="tier-head">💡 What to think about</div><p>For a reaction to occur, particles must collide AND have energy ≥ the activation energy (Eₐ).</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Key fact</div><p>Higher T → particles have more kinetic energy → greater proportion have energy ≥ Eₐ → more successful collisions. Also: collision frequency increases as particles move faster. For NH₃ synthesis on Fe, Eₐ ≈ 59 kJ mol⁻¹.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"The Rate Index increases as temperature rises because higher temperatures give particles more kinetic energy, meaning a greater proportion of collisions have energy greater than or equal to the activation energy, so..."</div></div>
+      </div>
+      <textarea class="ans" id="q2" data-save="q2" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(2)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-2"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q3 -->
+    <div class="q-block">
+      <div class="q-label">Q3</div>
+      <p class="q-text">At 300 °C the equilibrium conversion is high, yet the process is never run at this temperature. Explain why.</p>
+      <button class="hint-toggle" onclick="toggleHint('h3')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h3">
+        <div class="hint-tier"><div class="tier-head">💡 What to think about</div><p>Look at the Rate Index at 300°C in your table. Even if equilibrium strongly favours NH₃, what problem does a near-zero rate create for a factory making hundreds of tonnes per day?</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Key points</div><ul><li>Below ~350°C the iron catalyst is barely active.</li><li>A commercial plant must produce NH₃ continuously at very high throughput.</li><li>Economic viability requires fast production, not just good equilibrium.</li></ul></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"Although the equilibrium conversion at 300°C is high, the rate of reaction is so slow that..."</div></div>
+      </div>
+      <textarea class="ans" id="q3" data-save="q3" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(3)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-3"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q4 -->
+    <div class="q-block">
+      <div class="q-label">Q4</div>
+      <p class="q-text">The simulator shows an "Effective Output" metric combining equilibrium conversion and rate. In which temperature range does this peak, and what does it tell you about the best temperature to choose?</p>
+      <button class="hint-toggle" onclick="toggleHint('h4')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h4">
+        <div class="hint-tier"><div class="tier-head">💡 What to look at</div><p>Find the <strong>purple dashed line</strong> on the simulator graph. Where is it highest? The amber-shaded region shows the industrial temperature range.</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 The trade-off</div><p>At low T: good equilibrium, poor rate. At high T: poor equilibrium, fast rate. The peak effective output is where these two are best balanced.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"The Effective Output peaks in the range approximately ___ to ___ °C. This suggests the best temperature is around ___ °C because..."</div></div>
+      </div>
+      <textarea class="ans" id="q4" data-save="q4" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(4)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-4"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PART B ═══════════════════ -->
+<div class="section teal-sec">
+  <div class="sec-header"><div class="sec-letter">B</div><div class="sec-title">Effect of Pressure on the Converter</div></div>
+  <div class="sec-body">
+    <p class="instr"><strong>Fix the temperature at 450 °C.</strong> Move the Pressure slider to each value and record the three metrics.</p>
+    <div class="tbl-wrap">
+      <table class="data-tbl"><thead><tr>
+        <th>Pressure (atm)</th><th>Equilibrium Conv. (%)</th><th>Rate Index (%)</th><th>Effective Output (%)</th><th style="min-width:155px">Key observation</th>
+      </tr></thead><tbody id="tbody-pres"></tbody></table>
+    </div>
+    <button class="tbl-check-btn" onclick="checkTable('pres')">📊 Check my table values</button>
+    <div class="check-panel tbl-check-result" id="check-panel-pres"></div>
+
+    <!-- Q5 -->
+    <div class="q-block">
+      <div class="q-label">Q5</div>
+      <p class="q-text">Using Le Chatelier's Principle, explain why increasing pressure increases the equilibrium conversion. Your answer must refer to the moles of gas on each side of the equation.</p>
+      <button class="hint-toggle" onclick="toggleHint('h5')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h5">
+        <div class="hint-tier"><div class="tier-head">💡 Count the moles of gas</div><p>N₂ + 3H₂ → 2NH₃<br>Left side: 1 + 3 = <strong>4 moles</strong> &emsp; Right side: <strong>2 moles</strong><br>Higher pressure favours the side with <em>fewer</em> moles of gas.</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Le Chatelier for pressure</div><p>Increasing pressure → system shifts to reduce pressure → towards fewer moles of gas → <strong>right-hand side</strong> → more NH₃.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"Increasing pressure shifts the equilibrium to the right because the right-hand side has fewer moles of gas (2 moles) compared to the left (4 moles). This means..."</div></div>
+      </div>
+      <textarea class="ans" id="q5" data-save="q5" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(5)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-5"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q6 -->
+    <div class="q-block">
+      <div class="q-label">Q6</div>
+      <p class="q-text">How does pressure affect the Rate Index? Suggest a reason for this trend.</p>
+      <button class="hint-toggle" onclick="toggleHint('h6')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h6">
+        <div class="hint-tier"><div class="tier-head">💡 What to think about</div><p>Higher pressure → same molecules in smaller volume → what happens to how often they collide?</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Key idea</div><p>Higher pressure → higher concentration → more collisions per second → greater rate. On the Fe surface, higher partial pressures of N₂ and H₂ mean more molecules adsorbing per second.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"As pressure increases, the Rate Index also increases because higher pressure means molecules are closer together, so..."</div></div>
+      </div>
+      <textarea class="ans" id="q6" data-save="q6" placeholder="Write your answer here…" rows="3"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(6)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-6"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q7 -->
+    <div class="q-block">
+      <div class="q-label">Q7</div>
+      <p class="q-text">If both equilibrium conversion and rate improve with pressure, why is the process not run at 800 or 1000 atm? Give at least <strong>two</strong> practical reasons.</p>
+      <button class="hint-toggle" onclick="toggleHint('h7')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h7">
+        <div class="hint-tier"><div class="tier-head">💡 Think about the engineering</div><p>Consider what it takes to build and run equipment at 1000 atm — the cost of compressors, the strength of pipes and vessels, and the consequences if something fails at that pressure.</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Key practical limits</div><ul><li><strong>Cost</strong>: Enormous energy and capital needed for compression.</li><li><strong>Safety</strong>: Extreme failure risk; hydrogen causes steel embrittlement.</li><li><strong>Diminishing returns</strong>: Going 200→300 atm gives large gain; 900→1000 atm gives very little extra.</li></ul></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"Although higher pressure improves conversion and rate, using 1000 atm is impractical because firstly… and secondly…"</div></div>
+      </div>
+      <textarea class="ans" id="q7" data-save="q7" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(7)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-7"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PART C ═══════════════════ -->
+<div class="section amber-sec">
+  <div class="sec-header"><div class="sec-letter">C</div><div class="sec-title">Finding the Optimum Conditions</div></div>
+  <div class="sec-body">
+    <p class="instr">Vary <strong>both</strong> sliders freely. Record the <strong>Effective Output (%)</strong> for each combination. The cell with the highest value is your optimum.</p>
+    <p class="instr" style="color:#8A4000;font-style:italic;">Tip: the purple dashed curve on the graph shows Effective Output across temperatures at the current pressure.</p>
+    <div class="tbl-wrap">
+      <table class="data-tbl" id="opt-grid"><thead><tr>
+        <th>T \ P</th><th>100 atm</th><th>150 atm</th><th>200 atm</th><th>250 atm</th><th>300 atm</th><th>400 atm</th>
+      </tr></thead><tbody id="tbody-opt"></tbody></table>
+    </div>
+    <p style="font-size:.81em;color:#888;margin-top:4px;">The cell with the highest value is automatically highlighted. Record Effective Output (%) for each cell.</p>
+
+    <!-- Q8 -->
+    <div class="q-block">
+      <div class="q-label">Q8</div>
+      <p class="q-text">State the combination of temperature and pressure that gives the highest Effective Output. Explain why this represents the best compromise.</p>
+      <button class="hint-toggle" onclick="toggleHint('h8')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h8">
+        <div class="hint-tier"><div class="tier-head">💡 What to look for</div><p>Scan your grid for the largest number. The "best compromise" means rate and equilibrium are most effectively balanced — not simply where one is maximised.</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Expected range</div><p>Industrial plants use 400–500°C and 150–300 atm. Very high pressures always help, but are limited by cost. Your optimum in the grid may favour the highest P you tested.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"The highest Effective Output in my grid was ___% at ___ °C and ___ atm. This is the best compromise because at lower temperatures the rate is too slow, whereas at higher temperatures..."</div></div>
+      </div>
+      <textarea class="ans" id="q8" data-save="q8" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(8)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-8"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q9 sketch -->
+    <div class="q-block">
+      <div class="q-label">Q9</div>
+      <p class="q-text">Sketch a graph of Equilibrium Conversion (%) against Temperature (°C). Show at least two curves for different pressures. Label the axes (with units), each curve, and mark the approximate industrial temperature range.</p>
+      <button class="hint-toggle" onclick="toggleHint('h9')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h9">
+        <div class="hint-tier"><div class="tier-head">💡 Shape of the curves</div><ul><li>X-axis: Temperature / °C (300→600) &emsp; Y-axis: Equilibrium Conversion / % (0→100)</li><li>Each curve slopes <strong>downward</strong> left to right — higher T = lower conversion.</li><li>Higher pressure curves sit <strong>above</strong> lower pressure curves.</li></ul></div>
+        <div class="hint-tier"><div class="tier-head">📚 Approximate values to plot</div><p>At 300 atm: 300°C ≈ 91%, 400°C ≈ 68%, 500°C ≈ 44%, 600°C ≈ 27%. At 100 atm: 300°C ≈ 74%, 400°C ≈ 44%, 500°C ≈ 26%, 600°C ≈ 16%.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Industrial range</div><div class="starter">Mark a shaded band between <strong>400°C and 500°C</strong> for the industrial operating range.</div></div>
+      </div>
+      <div class="canvas-wrap">
+        <div class="canvas-tools">
+          <label>Tool:</label>
+          <button class="ctool active" id="tool-pen" onclick="setTool('pen')">✏️ Pen</button>
+          <button class="ctool" id="tool-erase" onclick="setTool('erase')">⬜ Eraser</button>
+          &ensp;<label>Colour:</label>
+          <span class="color-swatch active" style="background:#1B4B8A" data-color="#1B4B8A" onclick="setColor(this)" title="Blue"></span>
+          <span class="color-swatch" style="background:#0D6E6E" data-color="#0D6E6E" onclick="setColor(this)" title="Teal"></span>
+          <span class="color-swatch" style="background:#B8600A" data-color="#B8600A" onclick="setColor(this)" title="Amber"></span>
+          <span class="color-swatch" style="background:#cc0000" data-color="#cc0000" onclick="setColor(this)" title="Red"></span>
+          <span class="color-swatch" style="background:#228B22" data-color="#228B22" onclick="setColor(this)" title="Green"></span>
+          &ensp;<label>Size:</label>
+          <input type="range" id="brush-size" min="1" max="6" value="2" style="width:80px">
+          &ensp;<button id="clr-btn" onclick="clearCanvas()">🗑 Clear</button>
+        </div>
+        <canvas id="sketch" width="820" height="320"></canvas>
+      </div>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(9)">📋 See model graph description</button></div>
+      <div class="check-panel" id="check-panel-9"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PART D ═══════════════════ -->
+<div class="section blue-sec">
+  <div class="sec-header"><div class="sec-letter">D</div><div class="sec-title">The Recycle Stream — Why It Matters</div></div>
+  <div class="sec-body">
+    <div class="info-box" style="margin-bottom:14px;">
+      <p>Even at optimum conditions, only a fraction of H₂ and N₂ is converted per pass. The gases are cooled so NH₃ liquefies and is removed; <strong>unreacted H₂ and N₂ are recycled</strong> back to the Converter. The original diagram was missing this stream!</p>
+      <br><p style="color:#555;font-size:.9em;"><strong>Formula:</strong> Average passes per molecule = 100 ÷ single-pass conversion (%)</p>
+    </div>
+    <div class="tbl-wrap">
+      <table class="data-tbl"><thead><tr>
+        <th>Single-pass Conv. (%)</th><th>Gas recycled per pass (%)</th><th>Avg passes per molecule</th><th style="min-width:170px">What does this mean for running costs?</th>
+      </tr></thead><tbody id="tbody-recycle"></tbody></table>
+    </div>
+    <p style="font-size:.81em;color:#888;margin-top:4px;">Recycled % and avg passes are auto-calculated. Try working them out yourself first.</p>
+
+    <!-- Q10 -->
+    <div class="q-block">
+      <div class="q-label">Q10</div>
+      <p class="q-text">In your own words, explain why the recycle stream is essential for making the process economically viable.</p>
+      <button class="hint-toggle" onclick="toggleHint('h10')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h10">
+        <div class="hint-tier"><div class="tier-head">💡 Think about waste</div><p>At 40% single-pass conversion, what percentage of H₂ and N₂ leaves the Converter without reacting? What happens to it without a recycle stream?</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Key economics</div><ul><li>H₂ is expensive (made from natural gas at high energy cost).</li><li>Without recycling, 35–85% of feedstocks would be wasted every pass.</li><li>Recycle compressor cost is far less than the feedstock it saves.</li></ul></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"The recycle stream is essential because without it, all the unreacted H₂ and N₂ would be wasted. Since the single-pass conversion is only around ___%, this would mean..."</div></div>
+      </div>
+      <textarea class="ans" id="q10" data-save="q10" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(10)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-10"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q11 -->
+    <div class="q-block">
+      <div class="q-label">Q11</div>
+      <p class="q-text">If the recycle stream were removed and all unreacted gases discarded, what would be the overall efficiency of the process at <strong>450 °C and 200 atm</strong>? Use your Part A data to justify your answer.</p>
+      <button class="hint-toggle" onclick="toggleHint('h11')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h11">
+        <div class="hint-tier"><div class="tier-head">💡 The link to Part A</div><p>Without recycling, overall efficiency = single-pass equilibrium conversion. Look up the Equilibrium Conversion at 450°C and 200 atm in your Part A table.</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 What this means</div><p>If single-pass conversion is 43%, without recycling only 43% of feedstock becomes NH₃ and 57% is wasted every single pass. With full recycling, overall conversion approaches 100%.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"From Part A, the equilibrium conversion at 450°C and 200 atm is approximately ___%. Without the recycle stream, the overall efficiency would be ___%, meaning ___% of all feedstock would be wasted."</div></div>
+      </div>
+      <textarea class="ans" id="q11" data-save="q11" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(11)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-11"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q12 -->
+    <div class="q-block">
+      <div class="q-label">Q12</div>
+      <p class="q-text">About 15% of the recycled gas is continuously removed as a <strong>"purge stream"</strong> rather than returned to the Converter. Suggest why this purge is necessary.</p>
+      <button class="hint-toggle" onclick="toggleHint('h12')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h12">
+        <div class="hint-tier"><div class="tier-head">💡 What is in the feed gases?</div><p>Air contains ~1% argon (Ar). Natural gas always contains traces of CH₄ and other non-reactive gases. These don't react in the Converter. What happens to them each time they go round the recycle loop?</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 The build-up problem</div><p>Inerts accumulate → dilute H₂ and N₂ → reduce partial pressures → slower rate and lower conversion. The purge removes them before they reach harmful concentrations.</p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"The purge stream is necessary because gases such as argon (from air) and methane do not react in the Converter. Without the purge, these inert gases would build up in the recycle loop, causing..."</div></div>
+      </div>
+      <textarea class="ans" id="q12" data-save="q12" placeholder="Write your answer here…" rows="4"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(12)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-12"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PART E ═══════════════════ -->
+<div class="section teal-sec">
+  <div class="sec-header"><div class="sec-letter">E</div><div class="sec-title">Conclusions and Real Industrial Practice</div></div>
+  <div class="sec-body">
+    <p class="instr">Complete the summary table, then answer the final questions.</p>
+    <div class="tbl-wrap">
+      <table class="data-tbl summary-tbl"><tbody id="tbody-summary"></tbody></table>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q13 -->
+    <div class="q-block">
+      <div class="q-label">Q13</div>
+      <p class="q-text">Industrial Haber-Bosch plants operate at <strong>400–500 °C</strong> and <strong>150–300 atm</strong>. How do your findings compare? Describe the main trade-offs that lead to these conditions.</p>
+      <button class="hint-toggle" onclick="toggleHint('h13')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h13">
+        <div class="hint-tier"><div class="tier-head">💡 Structure your answer</div><p>Write separately about temperature and pressure. For each: state what the simulation showed, compare with industrial practice, explain the trade-off.</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 The two trade-offs</div><ul><li><strong>Temperature</strong>: Too low → too slow; too high → poor equilibrium. Iron catalyst makes 400–500°C the sweet spot.</li><li><strong>Pressure</strong>: Higher is better for conversion and rate, but above ~300 atm, engineering costs and safety risks outweigh the gains.</li></ul></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starters</div><div class="starter">"Regarding temperature: my simulation found a peak effective output at around ___ °C, which matches the industrial range of 400–500°C because...<br><br>Regarding pressure: my data showed that increasing pressure always improved conversion, but the industrial limit is chosen because..."</div></div>
+      </div>
+      <textarea class="ans" id="q13" data-save="q13" placeholder="Write your answer here…" rows="5"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(13)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-13"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q14 -->
+    <div class="q-block">
+      <div class="q-label">Q14</div>
+      <p class="q-text">An iron catalyst (with K₂O and Al₂O₃ promoters) is used. The catalyst does <em>not</em> appear in your equilibrium conversion results. Explain what the catalyst <em>does</em> affect, and why its use allows a lower operating temperature to be chosen.</p>
+      <button class="hint-toggle" onclick="toggleHint('h14')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h14">
+        <div class="hint-tier"><div class="tier-head">💡 Catalyst vs equilibrium</div><p>A catalyst changes the <strong>rate</strong> of a reaction, not the equilibrium position. It provides an alternative pathway with a lower activation energy. The equilibrium conversion at any T and P is the same with or without a catalyst.</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 The knock-on effect</div><p>Without catalyst: need ~600°C for acceptable rate → but equilibrium conversion is very low at 600°C.<br>With Fe catalyst: acceptable rate at ~400–450°C → equilibrium conversion is much higher.<br><strong>Catalyst → lower T → better equilibrium → higher conversion per pass.</strong></p></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starter</div><div class="starter">"The catalyst does not change the equilibrium position, so it does not affect the equilibrium conversion shown in the simulator. However, it lowers the activation energy, meaning an acceptable rate can be achieved at a lower temperature. This is important because at lower temperatures..."</div></div>
+      </div>
+      <textarea class="ans" id="q14" data-save="q14" placeholder="Write your answer here…" rows="5"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(14)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-14"></div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Q15 -->
+    <div class="q-block">
+      <div class="q-label" style="background:#0D6E6E;">Q15 ⭐ Extension</div>
+      <p class="q-text">The Haber-Bosch process uses ~1–2% of global energy. Using what you know about the conditions required, suggest <strong>two ways</strong> engineers might reduce its energy demand in future.</p>
+      <button class="hint-toggle" onclick="toggleHint('h15')"><span>💡 Show Help Notes</span><span class="arrow"> ▶</span></button>
+      <div class="hint-panel" id="h15">
+        <div class="hint-tier"><div class="tier-head">💡 Where does the energy go?</div><p>The three biggest energy consumers are: (1) making H₂ from natural gas, (2) compressing gases to 150–300 atm, (3) heating the Converter to 400–500°C. Which could be done more efficiently or differently?</p></div>
+        <div class="hint-tier"><div class="tier-head">📚 Ideas to consider</div><ul><li>Better catalysts (e.g. Ru-based) active at lower T and P.</li><li>Green hydrogen: water electrolysis using renewable electricity.</li><li>Electrochemical NH₃ synthesis at ambient conditions (ongoing research).</li><li>Better heat integration: use the exothermic reaction's heat to pre-heat incoming gases.</li></ul></div>
+        <div class="hint-tier"><div class="tier-head">✏️ Sentence starters</div><div class="starter">"One way to reduce energy demand would be to… because this would mean less energy is needed for…<br><br>A second approach could be… which would reduce energy consumption by…"</div></div>
+      </div>
+      <textarea class="ans" id="q15" data-save="q15" placeholder="Write your answer here…" rows="5"></textarea>
+      <div class="check-row"><button class="check-btn" onclick="checkAnswer(15)">✓ Check my answer</button></div>
+      <div class="check-panel" id="check-panel-15"></div>
+    </div>
+  </div>
+</div>
+
+<div class="keyword-bank">
+  <h3>📖 Key Words — use these in your written answers</h3>
+  <div class="keywords">
+    <span class="kw">Le Chatelier's Principle</span><span class="kw">equilibrium</span><span class="kw">dynamic equilibrium</span><span class="kw">activation energy</span><span class="kw">catalyst</span><span class="kw">collision frequency</span><span class="kw">exothermic</span><span class="kw">rate of reaction</span><span class="kw">yield</span><span class="kw">single-pass conversion</span><span class="kw">recycle stream</span><span class="kw">equilibrium conversion</span><span class="kw">partial pressure</span><span class="kw">moles of gas</span><span class="kw">economic viability</span><span class="kw">promoter</span><span class="kw">inert gas</span><span class="kw">purge stream</span><span class="kw">optimum</span><span class="kw">compromise</span>
+  </div>
+</div>
+<div id="save-status">💾 Answers auto-saved in this browser.</div><br>
+
+</div><!-- end .page -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  CHEMISTRY (same as simulator — for table checking)
+// ═══════════════════════════════════════════════════════════════════
+function calcKp(T_C) {
+  return Math.exp(13151 / (T_C + 273.15) - 27.65);
+}
+function solveAlpha(T_C, P_atm) {
+  const Kp = calcKp(T_C); const K27P2 = 27 * Kp * P_atm * P_atm;
+  function f(a) { return 16*a*a*(2-a)*(2-a) - K27P2*Math.pow(1-a,4); }
+  let lo = 1e-9, hi = 1-1e-9;
+  for (let i=0;i<120;i++){const m=(lo+hi)/2; f(m)<0?lo=m:hi=m;}
+  return (lo+hi)/2;
+}
+function calcRate(T_C, P_atm) {
+  const T_K=T_C+273.15, Ea=59000, R=8.314;
+  return Math.min(1, Math.exp(-Ea/(R*T_K))/Math.exp(-Ea/(R*873.15)) * Math.pow(P_atm/400,0.25));
+}
+function calcEff(alpha,rate){ return Math.sqrt(alpha*rate); }
+
+// ═══════════════════════════════════════════════════════════════════
+//  SELF-CHECK DATA (concepts + model answers for all 15 questions)
+// ═══════════════════════════════════════════════════════════════════
+const Q_DATA = {
+  1: {
+    concepts: [
+      { text:'Reaction described as exothermic / heat released',          pat:'exotherm|releases? heat|gives out heat|negative.{0,5}ΔH|ΔH.{0,5}negative' },
+      { text:'Le Chatelier\'s Principle named or applied',                pat:"le chat|chatelier|equilibrium.{0,20}shift|shift.{0,20}equilibrium|opposes" },
+      { text:'Equilibrium shifts left / reverse reaction favoured',       pat:'shift.{0,15}left|left.{0,15}shift|reverse.{0,10}reaction|backward|right to left' },
+      { text:'Less NH₃ formed / conversion decreases',                   pat:'less nh|fewer nh|conver.{0,10}decreas|yield.{0,10}decreas|decreas.{0,10}conver|decreas.{0,10}yield|decompos' },
+      { text:'Heat treated as a "product" / opposing the added heat',     pat:"heat.{0,10}product|product.{0,10}heat|absorb.{0,10}heat|remov.{0,10}heat|oppos.{0,10}increas" },
+    ],
+    model:`The forward reaction N₂ + 3H₂ → 2NH₃ is exothermic (ΔH° = −92 kJ mol⁻¹) — it releases heat. Le Chatelier's Principle states that a system at equilibrium shifts to oppose any imposed change. Increasing temperature adds heat to the system; since heat can be treated as a "product" of the exothermic reaction, the equilibrium shifts to the left (reverse direction) to absorb the excess heat. More NH₃ decomposes back into N₂ and H₂, and the equilibrium conversion of N₂ therefore decreases as temperature rises.`
+  },
+  2: {
+    concepts: [
+      { text:'Kinetic energy increases with temperature',                 pat:'kinetic energy|move faster|more energetic|faster.{0,10}particl' },
+      { text:'Activation energy mentioned (Eₐ)',                         pat:'activation energy|E_a|Eₐ|minimum energy|energy.{0,10}needed' },
+      { text:'Greater proportion of particles have enough energy',        pat:'proportion|fraction|more.{0,10}successful|greater.{0,10}number.{0,10}particl' },
+      { text:'More frequent / more successful collisions',               pat:'frequen.{0,10}collision|collision.{0,10}frequen|more.{0,10}collision|successful.{0,10}collision' },
+      { text:'Rate increases (stated clearly)',                           pat:'rate.{0,10}increas|increas.{0,10}rate|faster rate|reaction.{0,10}faster' },
+    ],
+    model:`The Rate Index increases with temperature. Collision theory states that for a reaction to occur, particles must collide with combined kinetic energy ≥ the activation energy (Eₐ ≈ 59 kJ mol⁻¹ on iron). As temperature rises: (1) particles move faster, increasing collision frequency; (2) a greater proportion of particles have kinetic energy ≥ Eₐ, so more collisions are successful. Both effects greatly increase the rate. Even a moderate temperature rise (e.g. 400°C → 500°C) significantly raises the fraction of molecules with sufficient energy to react.`
+  },
+  3: {
+    concepts: [
+      { text:'Rate is very slow / negligible at 300 °C',                 pat:'rate.{0,15}slow|slow.{0,15}rate|negligibl|near.?zero|barely|very slow|too slow' },
+      { text:'Catalyst is inactive / barely active below ~350 °C',       pat:'catalyst.{0,15}inactiv|inactiv.{0,10}catalyst|below.{0,10}350|active.{0,10}temp|not.{0,10}work.{0,10}300' },
+      { text:'Commercial / economic viability needs high throughput',     pat:'commerci|econom|viab|profitable|throughput|tonnes|per day|produc.{0,10}rate' },
+      { text:'Impractical / too long to wait for equilibrium',           pat:'impractical|too long|waiting|time.{0,10}long|never.{0,10}reach|takes too' },
+    ],
+    model:`Although equilibrium conversion is very high at 300°C, the Rate Index is almost zero — the iron catalyst is essentially inactive below ~350°C and the reaction proceeds so slowly that reaching equilibrium would take an impractically long time. A commercial plant must produce hundreds of tonnes of NH₃ per day to be economically viable. A near-zero rate makes this impossible regardless of how favourable the equilibrium is. The high equilibrium conversion is useless if the reaction never reaches equilibrium in practice.`
+  },
+  4: {
+    concepts: [
+      { text:'Temperature range ~400–500 °C identified',                 pat:'400|450|500|40[0-9]|4[0-9][0-9].{0,5}(°|deg|C)' },
+      { text:'Balance / compromise between rate and equilibrium',         pat:'comprom|balance|trade.?off|both.{0,10}factor|factor.{0,10}both|optimum' },
+      { text:'Low T gives slow rate problem',                             pat:'low.{0,10}(temp|T).{0,20}slow|slow.{0,15}(low|300|350)|rate.{0,10}too slow' },
+      { text:'High T gives poor equilibrium problem',                     pat:'high.{0,10}(temp|T).{0,20}(low|poor|falls|decreas)|conver.{0,10}fall|equilib.{0,10}fall|poor.{0,10}equilib' },
+      { text:'Peak / optimum identified',                                 pat:'peak|maximum|highest|best.{0,10}temp|best.{0,10}condi' },
+    ],
+    model:`The Effective Output peaks at approximately 400–500°C (at 200 atm). This indicates the best temperature lies in this range — it represents the optimum compromise between two competing effects: (1) below ~400°C, equilibrium conversion is high but the rate is far too slow for commercial production; (2) above ~500°C, the rate is fast but the equilibrium shifts left, sharply reducing conversion. The peak at ~400–450°C is where the product of equilibrium × rate is maximised, giving the highest practical NH₃ output.`
+  },
+  5: {
+    concepts: [
+      { text:'Moles of gas: 4 mol on left, 2 mol on right',              pat:'4 mol|four mol|1.{0,5}3.{0,5}mol|2 mol.{0,10}right|fewer mol.{0,10}right|right.{0,10}fewer' },
+      { text:'Higher pressure favours fewer moles of gas',               pat:'fewer mol|less mol|fewer mole|reduc.{0,10}mol|side.{0,10}fewer|fewer.{0,10}side' },
+      { text:'Le Chatelier / equilibrium shift mentioned',               pat:'le chat|chatelier|shift|equilib.{0,10}move|equilib.{0,10}shift' },
+      { text:'Equilibrium shifts right / forward reaction favoured',      pat:'shift.{0,10}right|right.{0,10}shift|forward.{0,10}reaction|forward.{0,10}favour|right.{0,10}favour' },
+      { text:'More NH₃ produced / conversion increases',                 pat:'more nh|higher.{0,10}conver|conver.{0,10}increas|increas.{0,10}yield|yield.{0,10}increas' },
+    ],
+    model:`N₂(g) + 3H₂(g) ⇌ 2NH₃(g): the left-hand side has 1 + 3 = 4 moles of gas; the right-hand side has only 2 moles. Le Chatelier's Principle states that increasing pressure causes the equilibrium to shift towards the side with fewer moles of gas (to partially reduce the pressure). Since the right-hand side has fewer moles (2 vs 4), the equilibrium shifts to the right, producing more NH₃ and increasing the equilibrium conversion.`
+  },
+  6: {
+    concepts: [
+      { text:'Rate Index increases with pressure (stated)',               pat:'rate.{0,10}increas|increas.{0,10}rate|rate.{0,10}goes up|rate.{0,10}higher|higher.{0,10}rate|rate.{0,10}faster' },
+      { text:'Higher concentration / molecules closer together',          pat:'concentrat|closer|denser|molecules.{0,10}close|volume.{0,10}smaller|compres' },
+      { text:'More frequent collisions',                                  pat:'more.{0,10}collision|frequen.{0,10}collision|collision.{0,10}frequen|collide.{0,10}more' },
+      { text:'Catalyst surface / adsorption mentioned',                   pat:'catalyst|surface|adsorb|active site|iron|Fe ' },
+    ],
+    model:`The Rate Index increases as pressure increases. Higher pressure means the same number of gas molecules occupies a smaller volume, so their concentration (and partial pressure) is higher. This leads to more frequent collisions between reactant molecules per unit volume per second. For the iron-catalysed reaction, higher partial pressures of N₂ and H₂ also mean that more reactant molecules adsorb onto the catalyst surface per second, increasing the surface reaction rate. Both effects increase the overall rate of NH₃ synthesis.`
+  },
+  7: {
+    concepts: [
+      { text:'Very high cost of compression / energy',                    pat:'cost.{0,15}compress|compress.{0,15}cost|energy.{0,15}compress|expens.{0,10}compress|compress.{0,10}expens|capital.{0,10}cost' },
+      { text:'Expensive / special equipment / engineering',               pat:'expens.{0,10}equip|equip.{0,10}expens|engineer|vessel|pipe|build.{0,10}cost|wall.{0,10}thick' },
+      { text:'Safety risk / danger / hydrogen embrittlement',             pat:'safe|hazard|risk|danger|fail|embrittl|crack|burst|explod|structur' },
+      { text:'Diminishing returns / small extra gain',                    pat:'diminish|marginal|little.{0,10}(extra|more|gain)|small.{0,10}(extra|gain|improv)|return|barely|not.{0,10}worth' },
+    ],
+    model:`Although higher pressure always improves equilibrium conversion and rate, 800–1000 atm is not practical for two main reasons: (1) Engineering cost and energy — compressing gases to 1000 atm requires enormous, prohibitively expensive compressors and vast amounts of electrical energy. Vessels, pipes, and fittings must be specially built to withstand extreme pressure, adding massive capital costs. (2) Safety — at extreme pressures the risk of catastrophic failure is significant, and high-pressure hydrogen causes "hydrogen embrittlement" of steel, weakening equipment over time. The marginal gain in conversion at 1000 atm compared to ~300 atm does not justify these costs and risks.`
+  },
+  8: {
+    concepts: [
+      { text:'Specific temperature stated (in the 400–500 °C region)',    pat:'400|410|420|430|440|450|460|470|480|490|500|4[0-9][0-9].{0,5}(°|deg|C)' },
+      { text:'Specific pressure stated',                                  pat:'\\d{2,3}.{0,5}atm|\\d{2,3}.{0,5}bar|100 atm|150 atm|200 atm|300 atm|400 atm' },
+      { text:'Compromise / balance of factors explained',                 pat:'comprom|balance|trade.?off|optimum|best.{0,10}balance|sweet.?spot' },
+      { text:'Rate consideration',                                        pat:'rate|fast|slow|speed|kinetic' },
+      { text:'Equilibrium / conversion consideration',                    pat:'equilib|conver|yield|nh.*produc' },
+    ],
+    model:`The highest Effective Output should appear at approximately 400–450°C and 300–400 atm (higher P always gives better results within practical limits). This represents the best compromise: below ~400°C the Rate Index is very low, making production impractically slow even with catalyst; above ~500°C the equilibrium conversion falls sharply. Higher pressures consistently improve both metrics, so the practical optimum is the highest pressure that is economically and safely achievable — typically 150–300 atm industrially.`
+  },
+  9: {
+    concepts: [
+      { text:'Axes labelled with units (Temperature / °C, Conversion / %)', pat:'(temp|T).{0,5}(°|deg|C)|conver.{0,5}%|%.{0,5}conver|x.?axis|y.?axis|axis.{0,5}label' },
+      { text:'Curves slope downward as T increases',                      pat:'decreas|downward|slope.{0,5}down|down.{0,5}slope|falls|negative.{0,5}slope|drop' },
+      { text:'Higher pressure curves are above lower pressure curves',    pat:'above|higher.{0,5}pressure.{0,15}above|above.{0,15}higher.{0,5}pressure|300.{0,10}above|higher.{0,5}P' },
+      { text:'Industrial T range marked (400–500 °C)',                   pat:'400.{0,5}500|500.{0,5}400|industrial|shad|band|mark.{0,10}400|400.{0,10}mark' },
+    ],
+    model:`The graph should show: X-axis labelled "Temperature / °C" (300 to 600); Y-axis labelled "Equilibrium Conversion / %" (0 to 100). Each curve slopes downward from left to right — higher T gives lower conversion (Le Chatelier). Higher pressure curves sit above lower pressure curves at every temperature. A shaded band between 400°C and 500°C marks the industrial operating temperature range. Approximate values: at 300 atm — 300°C≈91%, 400°C≈68%, 500°C≈44%, 600°C≈27%; at 100 atm — 300°C≈74%, 400°C≈44%, 500°C≈26%, 600°C≈16%.`
+  },
+  10: {
+    concepts: [
+      { text:'Single-pass conversion is low / only partial',              pat:'single.?pass|partial.{0,10}conver|only.{0,5}%|conver.{0,10}low|not.{0,10}all.{0,10}react|majority.{0,10}unreact' },
+      { text:'Without recycle, unreacted gas would be wasted',            pat:'wasted?|thrown away|lost|discard|vent|no recycle' },
+      { text:'H₂ and N₂ are expensive / cost to produce',               pat:'expens|feedstock|H₂.{0,10}cost|N₂.{0,10}cost|raw material|hydrogen.{0,10}cost|cost.{0,10}produc' },
+      { text:'Overall efficiency / conversion approaches 100% with recycle',pat:'overall.{0,10}conver|100%|near.{0,10}100|approach.{0,5}100|near.?total|greatly.{0,10}improv' },
+      { text:'Economically viable / cost-effective',                     pat:'econom|commerci|viab|profit|cost.?effect' },
+    ],
+    model:`The recycle stream is essential because the single-pass equilibrium conversion is only 15–65% under typical conditions — the majority of H₂ and N₂ passes through the Converter without reacting. Without recycling, all this unreacted gas would be vented and wasted. Since H₂ is expensive to produce (energy-intensive steam reforming of natural gas) and N₂ also requires energy to separate from air, discarding 35–85% of feedstocks every pass would make the process completely uneconomical. The recycle stream returns unreacted H₂ and N₂ so that overall conversion of fresh feed approaches 100%. The running cost of the recycle compressor is far less than the value of the feedstock saved.`
+  },
+  11: {
+    concepts: [
+      { text:'Overall efficiency equals single-pass conversion (without recycle)',pat:'overall.{0,15}single.?pass|equal.{0,15}single|same as single|efficiency.{0,15}conver|conver.{0,15}efficiency' },
+      { text:'Specific percentage mentioned (approximately 40–50 %)',     pat:'4[0-9]%|4[0-9] per|40 |43|44|45|46 |about 4' },
+      { text:'More than half wasted / large percentage lost',            pat:'5[0-9]%|6[0-9]%|more than half|majority.{0,10}(waste|lost)|over half|wasted' },
+      { text:'References Part A data / table',                           pat:'part a|table|data|from.{0,10}my|recorded|measured|part 1' },
+    ],
+    model:`From the Part A table, the equilibrium conversion at 450°C and 200 atm is approximately 43–45%. Without the recycle stream, this is the overall efficiency — only ~43–45% of all feedstock H₂ and N₂ would be converted to NH₃, and more than 55% would be wasted with every pass. This would be completely uneconomical: the majority of the expensive hydrogen feedstock (produced by steam reforming) would be discarded. The recycle stream converts this into near-100% overall conversion of fresh feed, making the process commercially viable.`
+  },
+  12: {
+    concepts: [
+      { text:'Inert gases accumulate / build up in recycle loop',         pat:'accumulat|build.?up|build up|accumulate|inert.{0,10}accum|accum.{0,10}inert|pile up|increase.{0,10}concentrat' },
+      { text:'Specific inerts named (Ar / argon / CH₄ / methane)',       pat:'argon|\\bAr\\b|methane|ch₄|ch4|inert.{0,5}gas|noble' },
+      { text:'Dilution of reactants / lower partial pressures',           pat:'dilut|partial pressure|concentrat.{0,10}lower|lower.{0,10}concentrat|partial.{0,10}lower|reduce.{0,10}concentrat' },
+      { text:'Slower rate / reduced conversion / reduced efficiency',      pat:'slow.{0,10}rate|rate.{0,10}slow|less.{0,10}efficien|reduc.{0,10}rate|lower.{0,10}output|reduc.{0,10}conver' },
+      { text:'Purge removes inerts / prevents build-up',                  pat:'remov.{0,10}inert|inert.{0,10}remov|prevent.{0,10}build|prevent.{0,10}accum|steady.{0,10}state|maintain.{0,10}concentrat' },
+    ],
+    model:`The purge stream is necessary to prevent the build-up of inert gases in the recycle loop. Air fed to the Secondary Reformer contains ~1% argon (Ar), which does not react in the Converter. Natural gas always contains traces of methane (CH₄) and other non-reactive hydrocarbons. Without a purge, these inerts would re-circulate with the recycle gas, accumulating to ever-higher concentrations. This would dilute the H₂ and N₂, reduce their partial pressures, slow the reaction rate, and reduce the equilibrium conversion per pass. The ~15% purge continuously removes a fraction of the recycle gas (enriched in inerts relative to the fresh feed), maintaining their concentration at a safe, steady level.`
+  },
+  13: {
+    concepts: [
+      { text:'Temperature comparison with industrial 400–500 °C',         pat:'400.{0,5}500|500.{0,5}400|industri.{0,10}temp|temp.{0,10}industri|matches|agrees|similar.{0,10}range|close.{0,10}400|close.{0,10}500' },
+      { text:'Pressure comparison with industrial 150–300 atm',           pat:'150|200|250|300.{0,5}atm|industri.{0,10}press|press.{0,10}industri|150.{0,5}300' },
+      { text:'Temperature trade-off (rate vs equilibrium)',               pat:'(rate|speed).{0,30}(equilib|conver)|comprom.{0,20}temp|temp.{0,20}comprom|trade.?off.{0,20}temp' },
+      { text:'Pressure limitation — cost / safety / engineering',         pat:'cost|safe|engineer|expens|limit.{0,10}press|press.{0,10}limit|capital' },
+      { text:'Overall finding agrees with / explains industrial choice',  pat:'agree|match|similar|close|consistent|explain.{0,15}why|chosen|justif' },
+    ],
+    model:`My simulation found peak Effective Output at approximately 400–450°C and 300–400 atm, which agrees well with the industrial range of 400–500°C and 150–300 atm. Temperature trade-off: 400–500°C balances rate (the catalyst is only active above ~350°C and rate must be high enough for commercial throughput) against equilibrium conversion (which decreases sharply above 500°C). Pressure trade-off: higher pressure always improves both conversion and rate, but above ~300 atm the engineering costs (compressor energy, vessel specifications) and safety risks grow rapidly, outweighing the conversion gains. The industrial values represent the economically optimal conditions.`
+  },
+  14: {
+    concepts: [
+      { text:'Catalyst does NOT change the equilibrium position',         pat:"not.{0,10}change.{0,10}equilib|equilib.{0,10}not.{0,10}change|doesn.?t.{0,10}(shift|affect|change).{0,10}equilib|no.{0,10}effect.{0,10}equilib|equilib.{0,10}unaffect" },
+      { text:'Catalyst lowers the activation energy',                     pat:'lower.{0,10}activation|activation.{0,10}lower|reduc.{0,5}Eₐ|lower.{0,5}Eₐ|lower.{0,10}E_a|lower.{0,10}activation energy' },
+      { text:'Acceptable rate at lower temperature (with catalyst)',       pat:'lower.{0,10}temp.{0,20}rate|rate.{0,10}lower.{0,10}temp|400.{0,15}instead.{0,15}600|400.{0,10}rate.{0,10}600' },
+      { text:'Lower temperature → better / more favourable equilibrium',  pat:'lower.{0,10}temp.{0,20}(better|higher|more|favour|improv).{0,15}equilib|equilib.{0,10}(better|higher|more|favour).{0,10}lower.{0,10}temp|favourable.{0,10}equilib' },
+      { text:'Net result: higher yield / conversion per pass',            pat:'higher.{0,10}(yield|conver|nh)|more.{0,10}nh|greater.{0,10}conver|more.{0,10}produc|higher.{0,10}output' },
+    ],
+    model:`The catalyst does not change the equilibrium position — the equilibrium conversion values in the simulator are the same with or without a catalyst (Kp is unchanged). What the catalyst does is lower the activation energy (from ~230 kJ mol⁻¹ uncatalysed to ~59 kJ mol⁻¹ on iron + promoters). This means a commercially acceptable rate of reaction can be achieved at ~400–450°C rather than needing ~600°C. This is critical: at 400°C the equilibrium conversion at 200 atm is ~55–60%, whereas at 600°C it is only ~16–20%. Using the catalyst therefore allows the plant to operate at a temperature where equilibrium strongly favours NH₃, dramatically improving conversion per pass and overall efficiency.`
+  },
+  15: {
+    concepts: [
+      { text:'Better / new catalyst active at lower T and P',             pat:'better.{0,10}catalyst|new.{0,10}catalyst|ruthen|lower.{0,15}temp.{0,15}catalyst|catalyst.{0,15}lower|single.?atom' },
+      { text:'Green hydrogen / renewable electricity / electrolysis',     pat:'green hydrogen|electrolys|renewable|solar|wind|electroch|clean.{0,5}H' },
+      { text:'Better heat integration / heat recovery',                   pat:'heat.{0,10}integrat|integrat.{0,10}heat|heat.{0,10}recover|recover.{0,10}heat|waste.{0,10}heat|reuse.{0,10}heat|heat.{0,10}exchang' },
+      { text:'Alternative synthesis route or ambient conditions',          pat:'plasma|ambient|novel|electroch.{0,10}synth|alternative.{0,10}(process|route)|biological|room.{0,10}temp' },
+      { text:'Two distinct suggestions given',                            pat:'first|second|one way|another|additionally|also.{0,5}could|furthermore|two' },
+    ],
+    model:`Two ways to reduce energy demand: (1) Develop better catalysts (e.g. ruthenium-based or single-atom catalysts) that are active at significantly lower temperatures and pressures than iron, reducing both the energy needed for heating and for gas compression. (2) Replace hydrogen production from natural gas (the most energy-intensive step, ~60–70% of total energy) with electrolysis of water using renewable electricity ("green hydrogen"), eliminating both the fossil energy input and the CO₂ emissions from steam reforming. Further valid suggestions include: improved heat integration — using the heat released by the exothermic Converter reaction to pre-heat incoming feed gases, reducing external heating costs; or novel electrochemical NH₃ synthesis at ambient conditions, currently under active research.`
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════
+//  CHECK ANSWER (written questions)
+// ═══════════════════════════════════════════════════════════════════
+function checkAnswer(n) {
+  const data = Q_DATA[n];
+  const panel = document.getElementById('check-panel-' + n);
+  panel.style.display = 'block';
+
+  if (n === 9) {
+    // Sketch question — just show model description
+    panel.innerHTML = `<div class="score-banner good"><span>📋</span><span>Model graph description</span></div>
+      <div class="model-text">${data.model}</div>`;
+    panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+    return;
+  }
+
+  const raw = (document.getElementById('q'+n)?.value || '').trim();
+  if (!raw) {
+    panel.innerHTML = '<p style="color:#888;font-size:.9em;">Please write an answer first, then click Check.</p>';
+    return;
+  }
+
+  // Check each concept
+  const results = data.concepts.map(c => ({
+    text: c.text,
+    found: new RegExp(c.pat, 'i').test(raw)
+  }));
+  const found = results.filter(r=>r.found).length;
+  const total = results.length;
+  const pct   = found / total;
+  const cls   = pct >= 0.7 ? 'good' : pct >= 0.4 ? 'ok' : 'needs';
+  const emj   = pct >= 0.7 ? '🟢' : pct >= 0.4 ? '🟡' : '🔴';
+  const msg   = pct >= 0.7
+    ? `Good answer! (${found}/${total} key points included)`
+    : pct >= 0.4
+    ? `Partially correct — check which key points are missing below (${found}/${total})`
+    : `Needs more detail — see the missing points below (${found}/${total})`;
+
+  let html = `<div class="score-banner ${cls}"><span>${emj}</span><span>${msg}</span></div>
+    <div class="concept-list">`;
+  results.forEach(r => {
+    html += `<div class="concept-item ${r.found?'found':'missing'}">
+      <span class="ci-icon">${r.found?'✅':'❌'}</span>
+      <span class="ci-text">${r.text}</span></div>`;
+  });
+  html += `</div>
+    <details class="model-reveal">
+      <summary>📋 Show model answer</summary>
+      <div class="model-text">${data.model}</div>
+    </details>`;
+
+  panel.innerHTML = html;
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  CHECK TABLE VALUES
+// ═══════════════════════════════════════════════════════════════════
+function checkTable(which) {
+  const panel = document.getElementById('check-panel-' + which);
+  panel.style.display = 'block';
+
+  const isTemp = which === 'temp';
+  const vals   = isTemp ? [300,350,400,450,500,550,600] : [50,100,150,200,250,300,400];
+  const fixedX = isTemp ? 200 : 450;   // atm or °C
+  const TOL    = 3;  // ±3% tolerance
+
+  function exp(v) {
+    const T = isTemp ? v    : fixedX;
+    const P = isTemp ? fixedX : v;
+    const alpha = solveAlpha(T, P);
+    const rate  = calcRate(T, P);
+    const eff   = calcEff(alpha, rate);
+    return {
+      eq:   +(alpha * 100).toFixed(1),
+      rate: +(rate  * 100).toFixed(1),
+      eff:  +(eff   * 100).toFixed(1)
+    };
+  }
+
+  function statusCell(expected, userStr) {
+    if (!userStr || userStr.trim() === '') return `<td class="t-blank">—</td>`;
+    const user = parseFloat(userStr);
+    if (isNaN(user)) return `<td class="t-blank">?</td>`;
+    const ok = Math.abs(user - expected) <= TOL;
+    return ok
+      ? `<td class="t-good">${user}% ✅</td>`
+      : `<td class="t-bad">${user}% ❌ <small>(~${expected}%)</small></td>`;
+  }
+
+  let html = `<div class="score-banner good" style="margin-bottom:8px;">
+    <span>📊</span><span>Expected values (±${TOL}% tolerance) — fixed ${isTemp?'P=200 atm':'T=450°C'}</span></div>
+    <table><thead><tr>
+      <th>${isTemp?'T (°C)':'P (atm)'}</th>
+      <th>Expected Eq%</th><th>Your Eq%</th>
+      <th>Expected Rate%</th><th>Your Rate%</th>
+      <th>Expected Eff%</th><th>Your Eff%</th>
+    </tr></thead><tbody>`;
+
+  vals.forEach(v => {
+    const e   = exp(v);
+    const pfx = isTemp ? 'ta' : 'tb';
+    const suffix = isTemp ? `eq-${v}` : `eq-${v}`;
+    const uEq   = document.querySelector(`[data-save="${pfx}-eq-${v}"]`)?.value || '';
+    const uRate = document.querySelector(`[data-save="${pfx}-rt-${v}"]`)?.value || '';
+    const uEff  = document.querySelector(`[data-save="${pfx}-ef-${v}"]`)?.value || '';
+    html += `<tr>
+      <td class="t-fixed">${v}</td>
+      <td class="t-exp">${e.eq}%</td>${statusCell(e.eq, uEq)}
+      <td class="t-exp">${e.rate}%</td>${statusCell(e.rate, uRate)}
+      <td class="t-exp">${e.eff}%</td>${statusCell(e.eff, uEff)}
+    </tr>`;
+  });
+
+  html += `</tbody></table>
+    <p class="tbl-note">✅ = within ${TOL}% of expected &emsp; ❌ = re-check the simulator slider position. Values from the simulator may vary slightly depending on browser and screen resolution.</p>`;
+  panel.innerHTML = html;
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  TABLE ROW BUILDERS
+// ═══════════════════════════════════════════════════════════════════
+const TEMP_VALS    = [300,350,400,450,500,550,600];
+const PRES_VALS    = [50,100,150,200,250,300,400];
+const OPT_TEMPS    = [350,400,450,500,550];
+const OPT_PRES     = [100,150,200,250,300,400];
+const RECYCLE_CONV = [10,25,40,60,80];
+
+function numIn(key) {
+  return `<input type="number" class="num-in" min="0" max="100" step="0.1"
+    data-save="${key}" placeholder="—" oninput="markFilled(this);save()">`;
+}
+function txtIn(key,w) {
+  return `<input type="text" class="text-in" data-save="${key}"
+    style="width:${w||'150px'}" placeholder="…" oninput="markFilled(this);save()">`;
+}
+
+;(function(){
+  const tb=document.getElementById('tbody-temp');
+  TEMP_VALS.forEach(t=>{
+    const r=document.createElement('tr');
+    r.innerHTML=`<td class="fixed">${t}</td><td>${numIn('ta-eq-'+t)}</td>
+      <td>${numIn('ta-rt-'+t)}</td><td>${numIn('ta-ef-'+t)}</td>
+      <td>${txtIn('ta-ob-'+t,'160px')}</td>`;
+    tb.appendChild(r);
+  });
+})();
+
+;(function(){
+  const tb=document.getElementById('tbody-pres');
+  PRES_VALS.forEach(p=>{
+    const r=document.createElement('tr');
+    r.innerHTML=`<td class="fixed">${p}</td><td>${numIn('tb-eq-'+p)}</td>
+      <td>${numIn('tb-rt-'+p)}</td><td>${numIn('tb-ef-'+p)}</td>
+      <td>${txtIn('tb-ob-'+p,'160px')}</td>`;
+    tb.appendChild(r);
+  });
+})();
+
+;(function(){
+  const tb=document.getElementById('tbody-opt');
+  OPT_TEMPS.forEach(t=>{
+    const r=document.createElement('tr');
+    let cells=`<td class="fixed">${t} °C</td>`;
+    OPT_PRES.forEach(p=>{
+      cells+=`<td class="opt-cell"><input type="number" class="num-in" min="0" max="100" step="0.1"
+        data-save="tc-${t}-${p}" placeholder="—"
+        oninput="highlightBest();markFilled(this);save()"></td>`;
+    });
+    r.innerHTML=cells; tb.appendChild(r);
+  });
+})();
+
+;(function(){
+  const tb=document.getElementById('tbody-recycle');
+  RECYCLE_CONV.forEach(c=>{
+    const r=document.createElement('tr');
+    r.innerHTML=`<td class="fixed">${c}%</td>
+      <td class="auto-cell">${(100-c)}%</td>
+      <td class="auto-cell">${(100/c).toFixed(1)}</td>
+      <td>${txtIn('td-obs-'+c,'175px')}</td>`;
+    tb.appendChild(r);
+  });
+})();
+
+;(function(){
+  const rows=[
+    ['Optimum temperature found (°C)','te-s1'],
+    ['Optimum pressure found (atm)','te-s2'],
+    ['Equilibrium conversion at optimum (%)','te-s3'],
+    ['Effective output at optimum (%)','te-s4'],
+    ['Why is temperature a compromise?','te-s5'],
+    ['Why is very high pressure not used?','te-s6'],
+  ];
+  const tb=document.getElementById('tbody-summary');
+  rows.forEach(([label,key])=>{
+    const r=document.createElement('tr');
+    r.innerHTML=`<td>${label}</td><td>${txtIn(key,'100%')}</td>`;
+    tb.appendChild(r);
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+//  HIGHLIGHT BEST IN OPT GRID
+// ═══════════════════════════════════════════════════════════════════
+function highlightBest() {
+  const inputs=document.querySelectorAll('#opt-grid input[type=number]');
+  let best=-Infinity, bestEl=null;
+  inputs.forEach(inp=>{const v=parseFloat(inp.value);if(!isNaN(v)&&v>best){best=v;bestEl=inp;}inp.classList.remove('best');});
+  if(bestEl) bestEl.classList.add('best');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  HINTS
+// ═══════════════════════════════════════════════════════════════════
+function toggleHint(id) {
+  const panel=document.getElementById(id);
+  const btn=panel.previousElementSibling;
+  const open=panel.style.display==='block';
+  panel.style.display=open?'none':'block';
+  btn.classList.toggle('open',!open);
+  btn.querySelector('.arrow').textContent=open?' ▶':' ▼';
+  btn.querySelector('span:first-child').textContent=open?'💡 Show Help Notes':'💡 Hide Help Notes';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  PROGRESS BAR
+// ═══════════════════════════════════════════════════════════════════
+function updateProgress() {
+  let n=0;
+  for(let i=1;i<=15;i++){const el=document.getElementById('q'+i);if(el&&el.value.trim().length>10)n++;}
+  const pct=Math.round(n/15*100);
+  document.getElementById('prog-bar').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=n+' / 15 answered';
+}
+
+function markFilled(el){ el.classList.toggle('filled',el.value.trim().length>0); }
+
+// ═══════════════════════════════════════════════════════════════════
+//  SAVE / LOAD
+// ═══════════════════════════════════════════════════════════════════
+const SK='haber_worksheet_v2';
+function save(){
+  const d={};
+  document.querySelectorAll('[data-save]').forEach(el=>{d[el.dataset.save]=el.value;});
+  localStorage.setItem(SK,JSON.stringify(d));
+  updateProgress();
+}
+function loadSaved(){
+  const raw=localStorage.getItem(SK); if(!raw)return;
+  try{
+    const d=JSON.parse(raw);
+    document.querySelectorAll('[data-save]').forEach(el=>{
+      if(d[el.dataset.save]!==undefined){el.value=d[el.dataset.save];markFilled(el);}
+    });
+    highlightBest(); updateProgress();
+  }catch(e){}
+}
+document.querySelectorAll('textarea.ans').forEach(ta=>{
+  ta.addEventListener('input',()=>{markFilled(ta);save();updateProgress();});
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  CANVAS SKETCH
+// ═══════════════════════════════════════════════════════════════════
+const canvas=document.getElementById('sketch');
+const ctx=canvas.getContext('2d');
+let isDrawing=false,lastX=0,lastY=0,drawTool='pen',drawColor='#1B4B8A';
+
+function initCanvas(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#FAFCFF'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  const pL=70,pR=30,pT=20,pB=45,cW=canvas.width-pL-pR,cH=canvas.height-pT-pB;
+  ctx.strokeStyle='#dde4ed'; ctx.lineWidth=1;
+  [0,20,40,60,80,100].forEach(y=>{
+    const cy=pT+cH-(y/100)*cH;
+    ctx.beginPath();ctx.moveTo(pL,cy);ctx.lineTo(pL+cW,cy);ctx.stroke();
+    ctx.fillStyle='#778';ctx.font='11px Arial';ctx.textAlign='right';
+    ctx.fillText(y+'%',pL-6,cy+4);
+  });
+  [300,350,400,450,500,550,600].forEach(t=>{
+    const cx=pL+((t-300)/300)*cW;
+    ctx.beginPath();ctx.moveTo(cx,pT);ctx.lineTo(cx,pT+cH);ctx.stroke();
+    ctx.fillStyle='#778';ctx.font='11px Arial';ctx.textAlign='center';
+    ctx.fillText(t,cx,pT+cH+16);
+  });
+  ctx.strokeStyle='#5577aa';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+cH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pL,pT+cH);ctx.lineTo(pL+cW,pT+cH);ctx.stroke();
+  ctx.fillStyle='#445';ctx.font='bold 12px Arial';ctx.textAlign='center';
+  ctx.fillText('Temperature / °C',pL+cW/2,canvas.height-4);
+  ctx.save();ctx.translate(14,pT+cH/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('Equilibrium Conversion / %',0,0);ctx.restore();
+  const x400=pL+((400-300)/300)*cW,x500=pL+((500-300)/300)*cW;
+  ctx.fillStyle='rgba(184,96,10,0.09)';ctx.fillRect(x400,pT,x500-x400,cH);
+  ctx.fillStyle='rgba(184,96,10,0.45)';ctx.font='10px Arial';ctx.textAlign='center';
+  ctx.fillText('Industrial',  (x400+x500)/2,pT+13);
+  ctx.fillText('T range',     (x400+x500)/2,pT+25);
+}
+initCanvas();
+
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const scX=canvas.width/r.width,scY=canvas.height/r.height;
+  const src=e.touches?e.touches[0]:e;
+  return [(src.clientX-r.left)*scX,(src.clientY-r.top)*scY];
+}
+function startDraw(e){e.preventDefault();isDrawing=true;[lastX,lastY]=getPos(e);}
+function doDraw(e){
+  e.preventDefault();if(!isDrawing)return;
+  const[x,y]=getPos(e);
+  ctx.globalCompositeOperation=drawTool==='erase'?'destination-out':'source-over';
+  ctx.strokeStyle=drawColor;
+  ctx.lineWidth=drawTool==='erase'?20:parseInt(document.getElementById('brush-size').value)*1.5+0.5;
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();
+  [lastX,lastY]=[x,y];
+}
+function stopDraw(){isDrawing=false;ctx.globalCompositeOperation='source-over';}
+canvas.addEventListener('mousedown',startDraw);
+canvas.addEventListener('mousemove',doDraw);
+canvas.addEventListener('mouseup',stopDraw);
+canvas.addEventListener('mouseleave',stopDraw);
+canvas.addEventListener('touchstart',startDraw,{passive:false});
+canvas.addEventListener('touchmove',doDraw,{passive:false});
+canvas.addEventListener('touchend',stopDraw);
+function setTool(t){drawTool=t;document.getElementById('tool-pen').classList.toggle('active',t==='pen');document.getElementById('tool-erase').classList.toggle('active',t==='erase');}
+function setColor(el){drawColor=el.dataset.color;document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));el.classList.add('active');setTool('pen');}
+function clearCanvas(){initCanvas();}
+
+// ═══════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{loadSaved();updateProgress();});
+</script>
+</body>
+</html>

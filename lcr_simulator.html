@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LCR Series Circuit Simulator — A-Level Physics</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #edf2f7;
+  color: #2d3748;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+  color: white;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+header h1 { font-size: 1.5rem; }
+header p  { font-size: 0.85rem; opacity: 0.82; margin-top: 2px; }
+
+/* ── Two-column main layout ── */
+.main {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 16px;
+  padding: 16px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .main { grid-template-columns: 1fr; }
+}
+
+/* ── Shared card ── */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  margin-bottom: 12px;
+}
+.card:last-child { margin-bottom: 0; }
+.card-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a0aec0;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* ── Circuit diagram ── */
+.circuit-wrap { text-align: center; }
+
+/* ── Sliders ── */
+.slider-block { margin-bottom: 14px; }
+.slider-block:last-child { margin-bottom: 0; }
+
+.slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.slider-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.8rem; color: white;
+  flex-shrink: 0;
+}
+.badge-r { background: #e53e3e; }
+.badge-l { background: #805ad5; }
+.badge-c { background: #2b6cb0; }
+.badge-f { background: #38a169; }
+
+.slider-name { font-size: 0.82rem; color: #718096; font-weight: 600; }
+.slider-value { font-size: 1.1rem; font-weight: 700; }
+.val-r { color: #e53e3e; }
+.val-l { color: #805ad5; }
+.val-c { color: #2b6cb0; }
+.val-f { color: #38a169; }
+
+.slider-track-wrap { position: relative; }
+input[type=range] {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 5px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2.5px solid #4299e1;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.slider-range {
+  display: flex; justify-content: space-between;
+  font-size: 0.68rem; color: #cbd5e0; margin-top: 2px;
+}
+.slider-note { font-size: 0.72rem; color: #b0bec5; margin-top: 4px; line-height: 1.35; }
+
+/* ── Results ── */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.result-tile {
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 10px 10px 8px;
+  text-align: center;
+}
+.result-tile.featured {
+  background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+  border: 1.5px solid #90cdf4;
+}
+.result-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: #718096; margin-bottom: 2px; }
+.result-value { font-size: 1rem; font-weight: 700; color: #1a365d; }
+.result-unit  { font-size: 0.62rem; color: #a0aec0; }
+
+/* ── Behaviour banner ── */
+.behaviour {
+  border-left: 4px solid #4299e1;
+  background: white;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  margin-bottom: 12px;
+  transition: border-color 0.25s;
+}
+.behaviour-title { font-weight: 700; font-size: 0.88rem; margin-bottom: 4px; }
+.behaviour-text  { font-size: 0.78rem; color: #4a5568; line-height: 1.55; }
+
+/* ── Equations ── */
+.equations {
+  background: #fffbeb;
+  border: 1px solid #f6e05e;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.72rem;
+  color: #744210;
+  line-height: 1.9;
+}
+.eq-title { font-weight: 700; font-size: 0.78rem; color: #92400e; margin-bottom: 4px; }
+.eq-row { display: flex; gap: 6px; }
+.eq-name { color: #a16207; width: 120px; flex-shrink: 0; }
+.eq-formula { font-family: 'Courier New', monospace; font-weight: 600; }
+
+/* ── Right panel ── */
+.right-panel { }
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 18px 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  margin-bottom: 12px;
+}
+.chart-card h3 {
+  font-size: 0.78rem;
+  color: #718096;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+/* ── Phasor ── */
+.phasor-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.phasor-left h3 {
+  font-size: 0.78rem;
+  color: #718096;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.phasor-legend { flex: 1; min-width: 180px; padding-top: 4px; }
+.legend-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 0.75rem; color: #4a5568; margin-bottom: 7px; line-height: 1.4;
+}
+.legend-swatch {
+  width: 12px; height: 12px; border-radius: 2px;
+  flex-shrink: 0; margin-top: 2px;
+}
+.phasor-note {
+  margin-top: 12px; padding: 10px;
+  background: #f7fafc; border-radius: 8px;
+  font-size: 0.72rem; color: #718096; line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⚡ LCR Series Circuit Simulator</h1>
+    <p>A-Level Physics &nbsp;·&nbsp; Explore impedance, resonance and phase angle</p>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ═══════════════════════════ LEFT PANEL ═══════════════════════════ -->
+  <div class="left-panel">
+
+    <!-- Circuit diagram -->
+    <div class="card">
+      <div class="card-title">Circuit Diagram</div>
+      <div class="circuit-wrap">
+        <svg viewBox="0 0 300 190" width="100%">
+          <defs>
+            <marker id="arr" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#38a169"/>
+            </marker>
+          </defs>
+          <!-- Top wire -->
+          <line x1="30" y1="50" x2="30" y2="16" stroke="#4a5568" stroke-width="2"/>
+          <line x1="30" y1="16" x2="270" y2="16" stroke="#4a5568" stroke-width="2"/>
+          <!-- Right wire down to components on right side (vertical loop) -->
+          <!-- Bottom wire -->
+          <line x1="30" y1="110" x2="30" y2="150" stroke="#4a5568" stroke-width="2"/>
+          <line x1="30" y1="150" x2="270" y2="150" stroke="#4a5568" stroke-width="2"/>
+          <line x1="270" y1="150" x2="270" y2="110" stroke="#4a5568" stroke-width="2"/>
+          <line x1="270" y1="50" x2="270" y2="16" stroke="#4a5568" stroke-width="2"/>
+
+          <!-- AC Source -->
+          <circle cx="30" cy="80" r="30" fill="white" stroke="#4a5568" stroke-width="2"/>
+          <text x="30" y="74" text-anchor="middle" font-size="18" fill="#4a5568" font-weight="bold">~</text>
+          <text x="30" y="88" text-anchor="middle" font-size="8" fill="#a0aec0">V source</text>
+
+          <!-- Resistor on top rail -->
+          <line x1="30" y1="16" x2="75" y2="16" stroke="#4a5568" stroke-width="2"/>
+          <rect x="75" y="8" width="50" height="16" rx="2.5" fill="#fed7d7" stroke="#e53e3e" stroke-width="1.8"/>
+          <text x="100" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#c53030">R</text>
+          <line x1="125" y1="16" x2="150" y2="16" stroke="#4a5568" stroke-width="2"/>
+          <text x="100" y="34" text-anchor="middle" font-size="9" fill="#c53030">Resistor</text>
+
+          <!-- Inductor on top rail -->
+          <path d="M150,16 q7,-13 14,0 q7,-13 14,0 q7,-13 14,0" fill="none" stroke="#805ad5" stroke-width="2"/>
+          <line x1="192" y1="16" x2="210" y2="16" stroke="#4a5568" stroke-width="2"/>
+          <text x="171" y="34" text-anchor="middle" font-size="9" fill="#805ad5">Inductor L</text>
+
+          <!-- Capacitor on right side (vertical) -->
+          <line x1="270" y1="50" x2="270" y2="85" stroke="#4a5568" stroke-width="2"/>
+          <line x1="255" y1="85" x2="285" y2="85" stroke="#2b6cb0" stroke-width="3"/>
+          <line x1="255" y1="94" x2="285" y2="94" stroke="#2b6cb0" stroke-width="3"/>
+          <line x1="270" y1="94" x2="270" y2="110" stroke="#4a5568" stroke-width="2"/>
+          <text x="295" y="92" text-anchor="start" font-size="9" fill="#2b6cb0">C</text>
+          <line x1="210" y1="16" x2="270" y2="16" stroke="#4a5568" stroke-width="2"/>
+
+          <!-- Current arrow on bottom rail -->
+          <line x1="90" y1="150" x2="170" y2="150" stroke="#38a169" stroke-width="1.8" stroke-dasharray="4,2.5" marker-end="url(#arr)"/>
+          <text x="130" y="165" text-anchor="middle" font-size="9" fill="#38a169">current I</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Sliders -->
+    <div class="card">
+      <div class="card-title">Component Values</div>
+
+      <div class="slider-block">
+        <div class="slider-header">
+          <div class="slider-label">
+            <div class="badge badge-r">R</div>
+            <span class="slider-name">Resistance</span>
+          </div>
+          <div class="slider-value val-r" id="rDisplay">50 Ω</div>
+        </div>
+        <input type="range" id="rSlider" min="1" max="500" value="50" step="1">
+        <div class="slider-range"><span>1 Ω</span><span>500 Ω</span></div>
+        <div class="slider-note">Higher R → more energy lost as heat, broader resonance peak</div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-header">
+          <div class="slider-label">
+            <div class="badge badge-l">L</div>
+            <span class="slider-name">Inductance</span>
+          </div>
+          <div class="slider-value val-l" id="lDisplay">10 mH</div>
+        </div>
+        <input type="range" id="lSlider" min="1" max="200" value="10" step="1">
+        <div class="slider-range"><span>1 mH</span><span>200 mH</span></div>
+        <div class="slider-note">X<sub>L</sub> = 2πfL increases with frequency</div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-header">
+          <div class="slider-label">
+            <div class="badge badge-c">C</div>
+            <span class="slider-name">Capacitance</span>
+          </div>
+          <div class="slider-value val-c" id="cDisplay">100 µF</div>
+        </div>
+        <input type="range" id="cSlider" min="1" max="1000" value="100" step="1">
+        <div class="slider-range"><span>1 µF</span><span>1000 µF</span></div>
+        <div class="slider-note">X<sub>C</sub> = 1/(2πfC) decreases with frequency</div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-header">
+          <div class="slider-label">
+            <div class="badge badge-f">f</div>
+            <span class="slider-name">Driving Frequency</span>
+          </div>
+          <div class="slider-value val-f" id="fDisplay">—</div>
+        </div>
+        <input type="range" id="fSlider" min="0" max="100" value="50" step="0.2">
+        <div class="slider-range"><span id="fMin">—</span><span id="fMax">—</span></div>
+        <div class="slider-note">Set to resonant frequency for maximum current</div>
+      </div>
+    </div>
+
+    <!-- Key values -->
+    <div class="card">
+      <div class="card-title">Key Values at Driving Frequency</div>
+      <div class="results-grid">
+        <div class="result-tile featured">
+          <div class="result-label">Resonant Freq f₀</div>
+          <div class="result-value" id="resFreq">—</div>
+          <div class="result-unit">minimum Z here</div>
+        </div>
+        <div class="result-tile">
+          <div class="result-label">Impedance Z</div>
+          <div class="result-value" id="impedance">—</div>
+          <div class="result-unit">at driving freq</div>
+        </div>
+        <div class="result-tile">
+          <div class="result-label">Phase Angle φ</div>
+          <div class="result-value" id="phaseAngle">—</div>
+          <div class="result-unit">V leads (+) / lags (−)</div>
+        </div>
+        <div class="result-tile">
+          <div class="result-label">Q Factor</div>
+          <div class="result-value" id="qFactor">—</div>
+          <div class="result-unit">sharpness</div>
+        </div>
+        <div class="result-tile">
+          <div class="result-label">X<sub>L</sub> inductive</div>
+          <div class="result-value" id="xlVal">—</div>
+          <div class="result-unit">Ω</div>
+        </div>
+        <div class="result-tile">
+          <div class="result-label">X<sub>C</sub> capacitive</div>
+          <div class="result-value" id="xcVal">—</div>
+          <div class="result-unit">Ω</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Behaviour -->
+    <div class="behaviour" id="behaviourCard">
+      <div class="behaviour-title" id="behaviourTitle">—</div>
+      <div class="behaviour-text"  id="behaviourText">—</div>
+    </div>
+
+    <!-- Equations -->
+    <div class="equations">
+      <div class="eq-title">📚 Key Equations</div>
+      <div class="eq-row"><span class="eq-name">Resonant f₀:</span><span class="eq-formula">1 / (2π√LC)</span></div>
+      <div class="eq-row"><span class="eq-name">Impedance Z:</span><span class="eq-formula">√(R² + (X<sub>L</sub>−X<sub>C</sub>)²)</span></div>
+      <div class="eq-row"><span class="eq-name">X<sub>L</sub>:</span><span class="eq-formula">2πfL</span></div>
+      <div class="eq-row"><span class="eq-name">X<sub>C</sub>:</span><span class="eq-formula">1 / (2πfC)</span></div>
+      <div class="eq-row"><span class="eq-name">Phase φ:</span><span class="eq-formula">arctan((X<sub>L</sub>−X<sub>C</sub>) / R)</span></div>
+      <div class="eq-row"><span class="eq-name">Q factor:</span><span class="eq-formula">(1/R) × √(L/C)</span></div>
+    </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- ═══════════════════════════ RIGHT PANEL ═══════════════════════════ -->
+  <div class="right-panel">
+
+    <div class="chart-card">
+      <h3>📊 Impedance vs Frequency &nbsp;—&nbsp; green line = your driving frequency</h3>
+      <canvas id="zChart" height="180"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>📈 Phase Angle vs Frequency &nbsp;—&nbsp; +90° inductive &nbsp;/&nbsp; −90° capacitive</h3>
+      <canvas id="phChart" height="160"></canvas>
+    </div>
+
+    <!-- Phasor diagram -->
+    <div class="phasor-card">
+      <div class="phasor-left">
+        <h3>🔄 Phasor Diagram (I = 1 A reference)</h3>
+        <canvas id="phasorCanvas" width="260" height="260" style="border-radius:8px;background:#f7fafc;display:block;"></canvas>
+      </div>
+      <div class="phasor-legend">
+        <div class="legend-row"><div class="legend-swatch" style="background:#38a169"></div><strong>I</strong> — reference current (horizontal)</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#e53e3e"></div><strong>V<sub>R</sub></strong> — across resistor, in phase with I</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#805ad5"></div><strong>V<sub>L</sub></strong> — across inductor, +90° ahead of I</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#2b6cb0"></div><strong>V<sub>C</sub></strong> — across capacitor, −90° behind I</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#1a202c"></div><strong>V<sub>total</sub></strong> — total supply voltage (vector sum)</div>
+        <div class="phasor-note">
+          At <strong>resonance</strong>, V<sub>L</sub> and V<sub>C</sub> are equal and opposite — they cancel. V<sub>total</sub> = V<sub>R</sub> and φ = 0°. The circuit acts like a pure resistor.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /right-panel -->
+
+</div><!-- /main -->
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// Vertical-line plugin — draws the green frequency marker
+// ─────────────────────────────────────────────────────────────
+let driveLogF = 2; // log10 of driving frequency
+
+const vLinePlugin = {
+  id: 'vLine',
+  afterDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    if (!scales.x) return;
+    const xPx = scales.x.getPixelForValue(driveLogF);
+    if (xPx < chartArea.left || xPx > chartArea.right) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xPx, chartArea.top);
+    ctx.lineTo(xPx, chartArea.bottom);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(56,161,105,0.8)';
+    ctx.setLineDash([6, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+};
+Chart.register(vLinePlugin);
+
+// ─────────────────────────────────────────────────────────────
+// Chart instances — axes are set once per component change
+// ─────────────────────────────────────────────────────────────
+const tickCallback = v => {
+  const f = Math.pow(10, v);
+  if (f >= 1e6) return (f/1e6).toFixed(0) + 'M';
+  if (f >= 1000) return (f/1000).toFixed(0) + 'k';
+  if (f >= 1)   return f.toFixed(0);
+  return f.toFixed(2);
+};
+
+const zChart = new Chart(document.getElementById('zChart'), {
+  type: 'line',
+  data: { datasets: [{ data: [], borderColor: '#2b6cb0', borderWidth: 2, pointRadius: 0, fill: false }] },
+  options: {
+    responsive: true, animation: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { type: 'linear', title: { display: true, text: 'Frequency (Hz)' }, ticks: { maxTicksLimit: 7, callback: tickCallback } },
+      y: { title: { display: true, text: 'Impedance Z (Ω)' }, min: 0, max: 1000 }
+    }
+  }
+});
+
+const phChart = new Chart(document.getElementById('phChart'), {
+  type: 'line',
+  data: { datasets: [{ data: [], borderColor: '#805ad5', borderWidth: 2, pointRadius: 0, fill: false }] },
+  options: {
+    responsive: true, animation: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { type: 'linear', title: { display: true, text: 'Frequency (Hz)' }, ticks: { maxTicksLimit: 7, callback: tickCallback } },
+      y: { title: { display: true, text: 'Phase Angle φ (°)' }, min: -95, max: 95, ticks: { stepSize: 30 } }
+    }
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// Phasor canvas
+// ─────────────────────────────────────────────────────────────
+const pCanvas = document.getElementById('phasorCanvas');
+const pCtx    = pCanvas.getContext('2d');
+
+function drawArrow(ctx, x0, y0, x1, y1, color, label) {
+  const dx = x1 - x0, dy = y1 - y0;
+  if (Math.hypot(dx, dy) < 2) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.setLineDash([]);
+  ctx.stroke();
+  const ang = Math.atan2(dy, dx), hl = 10;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - hl * Math.cos(ang - 0.38), y1 - hl * Math.sin(ang - 0.38));
+  ctx.lineTo(x1 - hl * Math.cos(ang + 0.38), y1 - hl * Math.sin(ang + 0.38));
+  ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+  if (label) {
+    ctx.fillStyle = color; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText(label, x1 + 7, y1 + 4);
+  }
+  ctx.restore();
+}
+
+function drawPhasor(VR, VL, VC, phi) {
+  const W = pCanvas.width, H = pCanvas.height;
+  const cx = W * 0.25, cy = H / 2;
+  const maxLen = Math.max(VR, VL, VC, Math.hypot(VR, VL - VC), 0.01);
+  const avail  = Math.min(W - cx - 36, H / 2 - 28);
+  const scale  = avail / maxLen;
+
+  pCtx.clearRect(0, 0, W, H);
+
+  // Axes
+  pCtx.save();
+  pCtx.strokeStyle = '#e2e8f0'; pCtx.lineWidth = 1;
+  pCtx.setLineDash([3, 3]);
+  pCtx.beginPath();
+  pCtx.moveTo(16, cy); pCtx.lineTo(W - 10, cy);
+  pCtx.moveTo(cx, 12); pCtx.lineTo(cx, H - 12);
+  pCtx.stroke();
+  pCtx.setLineDash([]);
+  pCtx.restore();
+
+  // Axis labels
+  pCtx.fillStyle = '#cbd5e0'; pCtx.font = '9px system-ui';
+  pCtx.textAlign = 'center';
+  pCtx.fillText('+90°', cx, 10);
+  pCtx.fillText('−90°', cx, H - 2);
+  pCtx.fillText('0°', W - 12, cy - 4);
+
+  // Reference current arrow (dashed, short)
+  pCtx.save();
+  pCtx.setLineDash([4, 2]);
+  pCtx.strokeStyle = '#38a169'; pCtx.lineWidth = 1.8;
+  pCtx.beginPath(); pCtx.moveTo(cx, cy); pCtx.lineTo(cx + 38, cy); pCtx.stroke();
+  pCtx.setLineDash([]);
+  pCtx.restore();
+  pCtx.fillStyle = '#38a169'; pCtx.font = 'bold 10px system-ui';
+  pCtx.textAlign = 'left';
+  pCtx.fillText('I', cx + 42, cy + 4);
+
+  // VR horizontal from origin
+  const vrX = cx + VR * scale;
+  drawArrow(pCtx, cx, cy, vrX, cy, '#e53e3e', 'VR');
+
+  // VL up from tip of VR
+  const vlY = cy - VL * scale;
+  drawArrow(pCtx, vrX, cy, vrX, vlY, '#805ad5', 'VL');
+
+  // VC down from tip of VL
+  const vcY = vlY + VC * scale;
+  drawArrow(pCtx, vrX, vlY, vrX, vcY, '#2b6cb0', 'VC');
+
+  // Vtotal from origin to final point (vrX, cy - (VL-VC)*scale)
+  const vtY = cy - (VL - VC) * scale;
+  drawArrow(pCtx, cx, cy, vrX, vtY, '#1a202c', 'Vtot');
+
+  // Phase angle arc
+  if (Math.abs(phi) > 0.03) {
+    const arcR = 34;
+    pCtx.save();
+    pCtx.beginPath();
+    pCtx.arc(cx, cy, arcR, 0, -phi, phi > 0);
+    pCtx.strokeStyle = '#dd6b20'; pCtx.lineWidth = 1.5;
+    pCtx.setLineDash([3, 2]); pCtx.stroke(); pCtx.setLineDash([]);
+    const midA = -phi / 2;
+    pCtx.fillStyle = '#dd6b20'; pCtx.font = 'bold 11px system-ui';
+    pCtx.textAlign = 'center';
+    pCtx.fillText('φ', cx + (arcR + 10) * Math.cos(midA), cy + (arcR + 10) * Math.sin(midA));
+    pCtx.restore();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────
+function fmtFreq(f) {
+  if (f >= 1000) return (f / 1000).toFixed(2) + ' kHz';
+  if (f >= 100)  return f.toFixed(1) + ' Hz';
+  return f.toFixed(2) + ' Hz';
+}
+function fmtOhm(x) {
+  if (x >= 1e6)  return (x / 1e6).toFixed(2) + ' MΩ';
+  if (x >= 1000) return (x / 1000).toFixed(2) + ' kΩ';
+  return x.toFixed(1) + ' Ω';
+}
+
+// ─────────────────────────────────────────────────────────────
+// State — axis bounds locked per component set
+// ─────────────────────────────────────────────────────────────
+let lockedLogMin, lockedLogMax, lockedZMax;
+let lockedFmin, lockedFmax;
+let sweepZData  = [];
+let sweepPhData = [];
+
+// Called when R, L, or C changes — rebuilds sweep data and locks new axes
+function rebuildSweep(R, L, C) {
+  const f0   = 1 / (2 * Math.PI * Math.sqrt(L * C));
+  const fMin = Math.max(0.5, f0 / 60);
+  const fMax = f0 * 60;
+  lockedFmin   = fMin;
+  lockedFmax   = fMax;
+  lockedLogMin = Math.log10(fMin);
+  lockedLogMax = Math.log10(fMax);
+
+  const N = 400;
+  sweepZData  = [];
+  sweepPhData = [];
+  let maxZ = 0;
+
+  for (let i = 0; i <= N; i++) {
+    const logF = lockedLogMin + (lockedLogMax - lockedLogMin) * (i / N);
+    const fi   = Math.pow(10, logF);
+    const wi   = 2 * Math.PI * fi;
+    const XLi  = wi * L;
+    const XCi  = 1 / (wi * C);
+    const Xi   = XLi - XCi;
+    const Zi   = Math.sqrt(R * R + Xi * Xi);
+    const phii = Math.atan2(Xi, R) * 180 / Math.PI;
+    sweepZData.push({ x: logF, y: Zi });
+    sweepPhData.push({ x: logF, y: phii });
+    if (Zi > maxZ) maxZ = Zi;
+  }
+
+  // Lock y-axis for impedance chart — add 10% headroom, round up nicely
+  lockedZMax = Math.ceil(maxZ * 1.12 / 10) * 10;
+
+  // Apply locked axes to both charts
+  zChart.options.scales.x.min = lockedLogMin;
+  zChart.options.scales.x.max = lockedLogMax;
+  zChart.options.scales.y.max = lockedZMax;
+
+  phChart.options.scales.x.min = lockedLogMin;
+  phChart.options.scales.x.max = lockedLogMax;
+
+  zChart.data.datasets[0].data  = sweepZData;
+  phChart.data.datasets[0].data = sweepPhData;
+
+  // Update frequency slider range labels
+  document.getElementById('fMin').textContent = fmtFreq(fMin);
+  document.getElementById('fMax').textContent = fmtFreq(fMax);
+
+  return f0;
+}
+
+// Called on every update — updates displays, phasor and redraws charts (no axis change)
+function updateDisplays(R, L, C, f, f0) {
+  const omega  = 2 * Math.PI * f;
+  const XL     = omega * L;
+  const XC     = 1 / (omega * C);
+  const X      = XL - XC;
+  const Z      = Math.sqrt(R * R + X * X);
+  const phi    = Math.atan2(X, R);
+  const phiDeg = phi * 180 / Math.PI;
+  const Q      = (1 / R) * Math.sqrt(L / C);
+
+  document.getElementById('rDisplay').textContent    = R + ' Ω';
+  document.getElementById('lDisplay').textContent    = document.getElementById('lSlider').value + ' mH';
+  document.getElementById('cDisplay').textContent    = document.getElementById('cSlider').value + ' µF';
+  document.getElementById('fDisplay').textContent    = fmtFreq(f);
+  document.getElementById('resFreq').textContent     = fmtFreq(f0);
+  document.getElementById('impedance').textContent   = fmtOhm(Z);
+  document.getElementById('phaseAngle').textContent  = phiDeg.toFixed(1) + '°';
+  document.getElementById('qFactor').textContent     = Q.toFixed(2);
+  document.getElementById('xlVal').textContent       = fmtOhm(XL);
+  document.getElementById('xcVal').textContent       = fmtOhm(XC);
+
+  // Behaviour banner
+  const card  = document.getElementById('behaviourCard');
+  const title = document.getElementById('behaviourTitle');
+  const text  = document.getElementById('behaviourText');
+  const frac  = Math.abs(f - f0) / f0;
+
+  if (frac < 0.025) {
+    card.style.borderColor = '#38a169';
+    title.style.color = '#276749';
+    title.textContent = '✅ At Resonance';
+    text.textContent = `X_L ≈ X_C and they cancel. Impedance is at its minimum (Z = R = ${R} Ω) and current is at its maximum. Voltage and current are in phase (φ ≈ 0°) — the circuit behaves like a pure resistor.`;
+  } else if (f < f0) {
+    card.style.borderColor = '#2b6cb0';
+    title.style.color = '#2c5282';
+    title.textContent = '📘 Below Resonance — Capacitive';
+    text.textContent = `X_C (${fmtOhm(XC)}) > X_L (${fmtOhm(XL)}). The capacitor dominates — current leads the voltage by ${Math.abs(phiDeg).toFixed(1)}°. Lowering the frequency further increases X_C and raises impedance.`;
+  } else {
+    card.style.borderColor = '#805ad5';
+    title.style.color = '#553c9a';
+    title.textContent = '📗 Above Resonance — Inductive';
+    text.textContent = `X_L (${fmtOhm(XL)}) > X_C (${fmtOhm(XC)}). The inductor dominates — current lags the voltage by ${Math.abs(phiDeg).toFixed(1)}°. Raising the frequency further increases X_L and raises impedance.`;
+  }
+
+  // Phasor (I = 1 A)
+  drawPhasor(R, XL, XC, phi);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Event handlers
+// ─────────────────────────────────────────────────────────────
+const rSlider = document.getElementById('rSlider');
+const lSlider = document.getElementById('lSlider');
+const cSlider = document.getElementById('cSlider');
+const fSlider = document.getElementById('fSlider');
+
+let currentF0 = 159;
+
+function onComponentChange() {
+  const R = parseFloat(rSlider.value);
+  const L = parseFloat(lSlider.value) * 1e-3;
+  const C = parseFloat(cSlider.value) * 1e-6;
+
+  currentF0 = rebuildSweep(R, L, C);
+
+  // Reset frequency slider to resonance (midpoint = 50)
+  fSlider.value = 50;
+
+  const f = lockedFmin * Math.pow(lockedFmax / lockedFmin, 0.5);
+  driveLogF = Math.log10(f);
+
+  updateDisplays(R, L, C, f, currentF0);
+
+  // Redraw charts with new data + locked axes
+  zChart.update();
+  phChart.update();
+}
+
+function onFrequencyChange() {
+  const R = parseFloat(rSlider.value);
+  const L = parseFloat(lSlider.value) * 1e-3;
+  const C = parseFloat(cSlider.value) * 1e-6;
+  const sv = parseFloat(fSlider.value);
+  const f  = lockedFmin * Math.pow(lockedFmax / lockedFmin, sv / 100);
+
+  driveLogF = Math.log10(f);
+
+  updateDisplays(R, L, C, f, currentF0);
+
+  // Only redraw to move the green line — axes are NOT touched
+  zChart.update();
+  phChart.update();
+}
+
+[rSlider, lSlider, cSlider].forEach(s => s.addEventListener('input', onComponentChange));
+fSlider.addEventListener('input', onFrequencyChange);
+
+// ─────────────────────────────────────────────────────────────
+// Initial render
+// ─────────────────────────────────────────────────────────────
+onComponentChange();
+</script>
+</body>
+</html>
